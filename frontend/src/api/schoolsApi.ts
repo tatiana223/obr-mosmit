@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
-export type SchoolItem = { id: string; title: string; summary: string; content: string; image?: string }
+export type SchoolField = { label: string; content: string }
+export type SchoolSection = { key: string; title: string; fields: SchoolField[] }
+export type SchoolItem = { id: string; title: string; summary: string; image?: string; sections: SchoolSection[] }
 
 async function loadSchools(): Promise<SchoolItem[]> {
   const response = await fetch('/api/schools')

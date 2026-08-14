@@ -145,18 +145,22 @@
 .school-detail-layout { padding: 28px 4.8% 76px; display: grid; grid-template-columns: minmax(240px,300px) minmax(0,1fr); gap: 20px; align-items: start; }
 .school-section-nav { padding: 12px; display: grid; background: #fff; border: 1px solid var(--line); border-radius: 5px; }
 .school-section-nav > span { padding: 10px 12px 14px; color: #8b7d72; text-transform: uppercase; letter-spacing: .13em; font-size: 9px; }
-.school-section-nav button { width: 100%; padding: 13px 12px; display: grid; grid-template-columns: 28px minmax(0,1fr) 14px; gap: 8px; align-items: center; color: #655a52; background: transparent; border: 0; border-top: 1px solid #eee8e0; text-align: left; cursor: pointer; transition: .18s ease; }
-.school-section-nav button i { color: var(--gold); font: 10px Georgia,serif; font-style: normal; }
+.school-section-nav button { width: 100%; padding: 13px 12px; display: grid; grid-template-columns: minmax(0,1fr) 14px; gap: 8px; align-items: center; color: #655a52; background: transparent; border: 0; border-top: 1px solid #eee8e0; text-align: left; cursor: pointer; transition: .18s ease; }
 .school-section-nav button b { font: 500 11px/1.35 Manrope,sans-serif; }
 .school-section-nav button em { color: #a4978c; font: 19px Georgia,serif; font-style: normal; }
 .school-section-nav button:hover { color: var(--green); background: #f7f3ed; }
 .school-section-nav button.active { color: #fff; background: var(--green); border-color: var(--green); border-radius: 3px; }
-.school-section-nav button.active i,.school-section-nav button.active em { color: #dfbd7b; }
+.school-section-nav button.active em { color: #dfbd7b; }
 .school-active-section { min-height: 390px; padding: 36px 40px 42px; background: #fff; border: 1px solid var(--line); border-radius: 5px; box-shadow: 0 15px 42px rgba(54,38,28,.045); }
-.school-active-section > h2 { max-width: 760px; margin: 8px 0 24px; padding-bottom: 18px; color: var(--green); border-bottom: 1px solid rgba(183,138,56,.38); font: 25px/1.35 Georgia,serif; }
+.school-active-section > h2 { max-width: 760px; margin: 0 0 24px; padding-bottom: 18px; color: var(--green); border-bottom: 1px solid rgba(183,138,56,.38); font: 25px/1.35 Georgia,serif; }
 .school-active-section > div { color: #49443f; font-size: 15px; line-height: 1.75; overflow-wrap: anywhere; }
 .school-active-section p { margin: 0 0 1em; }
 .school-active-section p:last-child { margin-bottom: 0; }
+.school-group-item { padding: 18px 0; border-bottom: 1px solid #eee8e0; }
+.school-group-item:first-child { padding-top: 0; }
+.school-group-item:last-child { padding-bottom: 0; border-bottom: 0; }
+.school-group-item h3 { margin: 0 0 9px; color: #76604f; font: 600 11px/1.4 Manrope,sans-serif; text-transform: uppercase; letter-spacing: .04em; }
+.school-group-item > div { color: #49443f; }
 .school-active-section a { color: var(--green); text-decoration-color: var(--gold); text-underline-offset: 3px; }
 .school-active-section img { max-width: 100%; height: auto; display: block; }
 .school-active-section ul,.school-active-section ol { padding-left: 20px; }
