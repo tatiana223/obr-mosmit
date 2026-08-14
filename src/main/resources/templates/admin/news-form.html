@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title th:text="${pageTitle}">Новость</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"><script defer th:src="@{/js/admin.js}"></script>
+</head>
+<body>
+<aside class="sidebar"><a class="admin-brand" href="/admin"><span class="brand-mark">ММ</span><span><b>Образование</b><small>Московская митрополия</small></span></a><nav><p>Рабочее пространство</p><a href="/admin"><span>⌂</span> Обзор</a><a class="active" href="/admin/news"><span>▤</span> Новости</a><a href="#"><span>▱</span> Документы <em>скоро</em></a><a href="#"><span>□</span> Календарь <em>скоро</em></a><p>Система</p><a href="#"><span>⚙</span> Настройки</a></nav><div class="sidebar-footer"><div class="avatar">А</div><div><b>Администратор</b><small>Полный доступ</small></div><form method="post" th:action="@{/logout}"><button title="Выйти">↪</button></form></div></aside>
+<main class="workspace">
+  <header class="page-header"><div><a class="back-link" href="/admin/news">← Вернуться к новостям</a><h1 th:text="${pageTitle}"></h1><p>Заполните материал и сохраните его как черновик или опубликуйте.</p></div><a class="secondary-button" th:if="${item != null && item.status.name() == 'PUBLISHED'}" th:href="@{/novosti/{slug}(slug=${item.slug})}" target="_blank">Открыть на сайте ↗</a></header>
+  <div class="flash" th:if="${message}"><span>✓</span><span th:text="${message}"></span></div>
+  <form class="editor-form" method="post" enctype="multipart/form-data" th:object="${newsForm}" th:action="${item == null} ? @{/admin/news} : @{/admin/news/{id}(id=${item.id})}">
+    <section class="editor-main surface">
+      <div class="field"><div class="label-row"><label for="title">Заголовок</label><span data-counter="title"></span></div><input id="title" data-count th:field="*{title}" maxlength="300" placeholder="Например: Состоялась встреча руководителей православных школ"><small class="error" th:errors="*{title}"></small></div>
+      <div class="field"><div class="label-row"><label for="summary">Краткое описание</label><span data-counter="summary"></span></div><textarea id="summary" data-count th:field="*{summary}" rows="4" maxlength="1000" placeholder="Коротко расскажите, о чём публикация — этот текст появится в карточке"></textarea><small class="hint">Достаточно двух–трёх предложений.</small><small class="error" th:errors="*{summary}"></small></div>
+      <div class="field"><label for="content">Текст новости</label><div class="editor-toolbar" aria-hidden="true"><button type="button"><b>B</b></button><button type="button"><i>I</i></button><span></span><button type="button">Абзац</button><button type="button">Список</button></div><textarea class="content-editor" id="content" th:field="*{content}" rows="19" placeholder="Введите полный текст новости. Разделяйте абзацы пустой строкой."></textarea><small class="error" th:errors="*{content}"></small></div>
+    </section>
+    <div class="editor-side">
+      <section class="form-card surface"><div class="card-title"><span class="step">1</span><div><h2>Публикация</h2><p>Кто увидит материал</p></div></div><label class="select-label">Статус<select th:field="*{status}"><option value="DRAFT">Черновик</option><option value="PUBLISHED">Опубликовано</option></select></label><button class="save-button" type="submit">Сохранить изменения</button></section>
+      <section class="form-card surface"><div class="card-title"><span class="step">2</span><div><h2>Обложка</h2><p>Главное изображение</p></div></div><label class="dropzone" data-dropzone><img data-image-preview th:hidden="${item == null || item.coverImageUrl == null}" th:src="${item != null ? item.coverImageUrl : ''}" alt="Предпросмотр"><span class="upload-icon">↑</span><b>Перетащите изображение</b><small>или нажмите для выбора</small><input data-image-input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif"></label><small class="hint">JPG, PNG или WebP · до 10 МБ</small></section>
+      <section class="form-card surface"><div class="card-title"><span class="step">3</span><div><h2>Адрес страницы</h2><p>Для поисковых систем</p></div></div><div class="slug-input"><span>/novosti/</span><input id="slug" th:field="*{slug}" placeholder="Создаётся автоматически"></div></section>
+    </div>
+  </form>
+  <form class="danger-zone" th:if="${item != null}" method="post" th:action="@{/admin/news/{id}/delete(id=${item.id})}" onsubmit="return confirm('Удалить эту новость без возможности восстановления?')"><div><b>Удаление публикации</b><small>Это действие нельзя отменить.</small></div><button>Удалить новость</button></form>
+</main>
+</body></html>

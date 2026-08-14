@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Книга">
+  <g fill="none" stroke="#B8944E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 22h24c8 0 14 5 14 12v42c0-7-6-12-14-12H10z"/>
+    <path d="M86 22H62c-8 0-14 5-14 12v42c0-7 6-12 14-12h24z"/>
+    <path d="M7 25v55h34c4 0 7 2 7 5 0-3 3-5 7-5h34V25"/>
+  </g>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 190" role="img" aria-labelledby="title desc">
+  <title id="title">Эмблема Московской митрополии</title>
+  <desc id="desc">Золотой линейный знак: овал, крест и стилизованный силуэт храма.</desc>
+  <g fill="none" stroke="#B8944E" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Open oval frame -->
+    <path d="M48 170C24 148 14 116 18 82 23 39 47 14 80 14s57 25 62 68c4 34-6 66-30 88"/>
+
+    <!-- Cross -->
+    <path d="M80 24v28M70 34h20M74 28l6-6 6 6"/>
+
+    <!-- Central dome and church outline -->
+    <path d="M80 49c-5 7-11 11-17 14 5 4 8 9 8 15v66"/>
+    <path d="M80 49c5 7 11 11 17 14-5 4-8 9-8 15v66"/>
+    <path d="M71 78h18"/>
+
+    <!-- Side domes -->
+    <path d="M51 75c-4 6-8 9-13 12 5 4 7 9 7 15v42"/>
+    <path d="M51 75c4 6 8 9 13 12-5 4-7 9-7 15v42"/>
+    <path d="M109 75c-4 6-8 9-13 12 5 4 7 9 7 15v42"/>
+    <path d="M109 75c4 6 8 9 13 12-5 4-7 9-7 15v42"/>
+
+    <!-- Architectural rhythm -->
+    <path d="M45 101h19M96 101h19"/>
+    <path d="M38 144h84"/>
+    <path d="M35 151h90"/>
+    <path d="M52 106v38M108 106v38"/>
+
+    <!-- Arched openings -->
+    <path d="M57 144v-23c0-8 5-13 11-13s11 5 11 13v23"/>
+    <path d="M81 144v-23c0-8 5-13 11-13s11 5 11 13v23"/>
+    <path d="M72 144v-12c0-7 3-11 8-11s8 4 8 11v12"/>
+  </g>
+</svg>

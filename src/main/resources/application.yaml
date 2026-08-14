@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: obr-mosmit
+  docker:
+    compose:
+      enabled: false
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/obr_mosmit}
+    username: ${DB_USERNAME:obr_mosmit}
+    password: ${DB_PASSWORD:obr_mosmit}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  session:
+    jdbc:
+      initialize-schema: always
+
+server:
+  port: ${PORT:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+app:
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:change-me-now}
+  uploads:
+    directory: ${UPLOADS_DIRECTORY:uploads}

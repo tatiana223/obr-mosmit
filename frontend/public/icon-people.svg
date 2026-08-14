@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Группа людей">
+  <g fill="none" stroke="#B8944E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="28" cy="26" r="11"/>
+    <circle cx="68" cy="26" r="11"/>
+    <circle cx="48" cy="53" r="11"/>
+    <path d="M7 68c1-17 9-27 21-27 8 0 14 4 18 11"/>
+    <path d="M89 68c-1-17-9-27-21-27-8 0-14 4-18 11"/>
+    <path d="M25 84c1-16 9-25 23-25s22 9 23 25z"/>
+    <path d="M7 68h18M71 68h18"/>
+  </g>
+</svg>

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Образовательная деятельность Московской митрополии</title><link rel="stylesheet" th:href="@{/css/site.css}"></head>
+<body>
+<header class="site-header"><a class="brand" href="/">Образовательная деятельность<br><span>Московской митрополии</span></a><nav><a href="/">Главная</a><a href="#news">Новости</a><a href="/admin">Кабинет</a></nav></header>
+<main>
+  <section class="hero"><p class="eyebrow">Московская митрополия</p><h1>Духовное просвещение и образование</h1><p>Новости, документы, методические материалы и календарь мероприятий отдела.</p></section>
+  <section id="news" class="section"><div class="section-title"><div><p class="eyebrow">Последние публикации</p><h2>Новости</h2></div></div>
+    <div class="news-grid" th:if="${!news.isEmpty()}"><article class="news-card" th:each="item : ${news}"><img th:if="${item.coverImageUrl}" th:src="${item.coverImageUrl}" alt=""><div><p class="date" th:text="${#temporals.format(item.publishedAt, 'dd.MM.yyyy')}"></p><h3><a th:href="@{/novosti/{slug}(slug=${item.slug})}" th:text="${item.title}"></a></h3><p th:text="${item.summary}"></p></div></article></div>
+    <div class="empty" th:if="${news.isEmpty()}">Здесь скоро появятся новости.</div>
+  </section>
+</main><footer>© Отдел по координации духовно-просветительской и образовательной деятельности</footer>
+</body></html>

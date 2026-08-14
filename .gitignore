@@ -1,0 +1,53 @@
+HELP.md
+target/
+uploads/
+frontend/node_modules/
+frontend/dist/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Local configuration and secrets ###
+.env
+.env.*
+!.env.example
+application-local.yml
+application-local.yaml
+application-prod.yml
+application-prod.yaml
+src/main/resources/application-local.yml
+src/main/resources/application-local.yaml
+src/main/resources/application-prod.yml
+src/main/resources/application-prod.yaml
+*.pem
+*.key
+*.p12
+*.jks
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/

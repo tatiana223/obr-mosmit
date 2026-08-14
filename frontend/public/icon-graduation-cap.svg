@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Академическая шапочка">
+  <g fill="none" stroke="#B8944E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 35 48 15l40 20-40 20z"/>
+    <path d="M25 44v22c13 12 33 12 46 0V44"/>
+    <path d="M48 35h34v30"/>
+    <path d="M82 65v14"/>
+    <path d="M78 84v-9c0-4 2-7 4-10 2 3 4 6 4 10v9"/>
+  </g>
+</svg>

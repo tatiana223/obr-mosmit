@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Адрес">
+  <g fill="none" stroke="#B78A38" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 5.5c-11.1 0-20 8.9-20 20 0 15 20 33 20 33s20-18 20-33c0-11.1-8.9-20-20-20z"/>
+    <circle cx="32" cy="25.5" r="7"/>
+    <path d="M20.5 54.5c-6.3 1.1-10.5 3-10.5 5.1 0 3.1 9.8 5.7 22 5.7s22-2.6 22-5.7c0-2.1-4.2-4-10.5-5.1" transform="translate(0 -5)"/>
+  </g>
+</svg>
