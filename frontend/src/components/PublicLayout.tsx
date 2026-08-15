@@ -21,7 +21,9 @@ export function PublicLayout() {
           образовательной деятельности Московской митрополии
         </span>
       </NavLink>
-      <button className="menu-button" onClick={() => setOpen(!open)} aria-expanded={open}>Меню</button>
+      <button className="menu-button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? 'Закрыть меню' : 'Открыть меню'}>
+        <span /><span /><span />
+      </button>
       <nav className={open ? 'open' : ''}>
         {links.map(([name, url]) => <NavLink key={url} to={url} onClick={() => setOpen(false)}>{name}</NavLink>)}
       </nav>
