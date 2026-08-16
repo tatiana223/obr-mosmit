@@ -27,6 +27,7 @@ public class News {
 
     @Column(name = "source_url", unique = true, length = 1000)
     private String sourceUrl;
+    @Column(name="gallery_urls",columnDefinition="text") private String galleryUrls;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -70,4 +71,5 @@ public class News {
     public void setPublishedAt(Instant publishedAt) { this.publishedAt = publishedAt; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public String getGalleryUrls(){return galleryUrls;} public void setGalleryUrls(String value){galleryUrls=value;}
 }

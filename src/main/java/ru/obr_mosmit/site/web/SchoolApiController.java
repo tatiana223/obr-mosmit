@@ -36,12 +36,28 @@ public class SchoolApiController {
                 .add(new SchoolFieldDto(detail.getLabel(), detail.getContent()))
         );
         List<SchoolSectionDto> sections = order.stream()
-            .filter(grouped::containsKey)
-            .map(key -> new SchoolSectionDto(key, titles.get(key), grouped.get(key)))
+            .map(key -> new SchoolSectionDto(key, titles.get(key), grouped.getOrDefault(key, List.of())))
             .toList();
-        return new SchoolDto(String.valueOf(item.getId()), item.getTitle(), item.getSummary(), item.getImageUrl(), sections);
+        return new SchoolDto(String.valueOf(item.getId()), item.getTitle(), item.getSummary(), item.getImageUrl(), split(item.getGalleryUrls()), sections);
     }
     public record SchoolFieldDto(String label, String content) {}
     public record SchoolSectionDto(String key, String title, List<SchoolFieldDto> fields) {}
-    public record SchoolDto(String id, String title, String summary, String image, List<SchoolSectionDto> sections) {}
+    private List<String> split(String value){return value==null||value.isBlank()?List.of():Arrays.asList(value.split("\n"));}
+    public record SchoolDto(String id, String title, String summary, String image, List<String> gallery, List<SchoolSectionDto> sections) {}
+
+    @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.transaction.annotation.Transactional
+    ResponseEntity<SchoolDto> update(@PathVariable Long id, @RequestBody SchoolUpdate request) {
+        return repository.findById(id).map(school -> {
+            school.setTitle(request.title()); school.setSummary(request.summary()); school.setImageUrl(request.image()); repository.save(school);
+            detailRepository.deleteAllBySchoolId(id); int sort = 0;
+            for (SchoolSectionDto section : request.sections()) for (SchoolFieldDto field : section.fields()) {
+                if (field.content() == null || field.content().isBlank()) continue;
+                var detail = new ru.obr_mosmit.site.school.SchoolDetail(); detail.setSchool(school); detail.setSectionKey(section.key()); detail.setLabel(field.label()); detail.setContent(field.content()); detail.setSortOrder(sort++); detailRepository.save(detail);
+            }
+            return ResponseEntity.ok(dto(school));
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    public record SchoolUpdate(String title,String summary,String image,List<SchoolSectionDto> sections){}
 }

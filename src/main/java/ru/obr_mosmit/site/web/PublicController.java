@@ -11,15 +11,20 @@ public class PublicController {
             "/novosti/{id}",
             "/pravoslavnye-shkoly",
             "/pravoslavnye-shkoly/{id}",
+            "/konkursy",
             "/kursy",
             "/dokumenty",
             "/dokumenty/razdel/{category}",
             "/dokumenty/{id}",
             "/kontakty",
+            "/cabinet",
             "/control-center",
             "/control-center/news",
             "/control-center/news/new",
-            "/control-center/news/{id}"
+            "/control-center/news/{id}",
+            "/control-center/schools",
+            "/control-center/competitions",
+            "/control-center/users"
     })
     String frontend() {
         return "forward:/index.html";

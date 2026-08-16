@@ -15,6 +15,7 @@ public class School {
     @Column(name = "image_url", length = 1000) private String imageUrl;
     @Column(name = "source_url", nullable = false, unique = true, length = 1000) private String sourceUrl;
     @Column(name = "created_at", nullable = false) private Instant createdAt;
+    @Column(name="gallery_urls",columnDefinition="text") private String galleryUrls;
 
     @PrePersist void onCreate() { createdAt = Instant.now(); }
     public Long getId() { return id; }
@@ -30,4 +31,5 @@ public class School {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getSourceUrl() { return sourceUrl; }
     public void setSourceUrl(String sourceUrl) { this.sourceUrl = sourceUrl; }
+    public String getGalleryUrls(){return galleryUrls;} public void setGalleryUrls(String value){galleryUrls=value;}
 }

@@ -1,17 +1,17 @@
 import { Link } from 'react-router-dom'
-import { demoNews } from '../data/news'
+
+const sections = [
+  { number: '01', title: 'Новости', description: 'Добавление новых публикаций, редактирование материалов и управление их статусом.', link: '/control-center/news', action: 'Управлять новостями' },
+  { number: '02', title: 'Православные школы', description: 'Основная информация, контакты, руководство, документы и образовательная деятельность школ.', link: '/control-center/schools', action: 'Редактировать школы' },
+  { number: '03', title: 'Конкурсы', description: 'Создание конкурсов, сроки регистрации и рассмотрение заявок участников.', link: '/control-center/competitions', action: 'Конкурсы и заявки' },
+  { number: '04', title: 'Пользователи', description: 'Просмотр зарегистрированных участников, управление доступом и назначение ролей.', link: '/control-center/users', action: 'Открыть пользователей' },
+  { number: '05', title: 'Курсы', description: 'Добавление курсов, описаний, обложек и фотографий.', link: '/control-center/courses', action: 'Управлять курсами' },
+  { number: '06', title: 'Документы', description: 'Документы, файлы, разделы и вложенные подразделы.', link: '/control-center/documents', action: 'Управлять документами' },
+  { number: '07', title: 'Контакты', description: 'Адреса, электронная почта и ответственные лица.', link: '/control-center/contacts', action: 'Изменить контакты' },
+]
 
 export function DashboardPage() {
-  return <>
-    <header className="page-header"><div><span className="overline">Пятница, 14 августа</span><h1>Добрый день</h1><p>Здесь собрана главная информация о сайте.</p></div><button className="button secondary">Открыть сайт ↗</button></header>
-    <section className="stats">
-      <article><span>Всего новостей</span><strong>137</strong><small>включая импортированные</small></article>
-      <article><span>Опубликовано</span><strong>136</strong><small className="positive">↑ 3 за этот месяц</small></article>
-      <article><span>Черновики</span><strong>1</strong><small>ожидает публикации</small></article>
-      <article><span>Состояние сайта</span><strong className="online">● Работает</strong><small>Все системы доступны</small></article>
-    </section>
-    <section className="surface content-panel"><div className="panel-header"><div><span className="overline">Контент</span><h2>Последние новости</h2></div><Link className="button primary" to="/admin/news/new">+ Добавить новость</Link></div>
-      <div className="recent-list">{demoNews.map(item => <Link to={`/admin/news/${item.id}`} key={item.id}><span className="date-tile">{item.date.slice(0,5)}</span><span><b>{item.title}</b><small>{item.status === 'PUBLISHED' ? 'Опубликовано' : 'Черновик'}</small></span><span className="row-arrow">→</span></Link>)}</div>
-    </section>
+  return <><header className="admin-page-intro"><span className="eyebrow">Содержание сайта</span><h1>Управление разделами</h1><p>Выберите раздел, в котором необходимо добавить или изменить информацию.</p></header>
+    <section className="admin-section-grid" aria-label="Разделы управления">{sections.map(section => <article key={section.link}><span className="admin-section-number">{section.number}</span><div><h2>{section.title}</h2><p>{section.description}</p><Link to={section.link}>{section.action} <span aria-hidden="true">→</span></Link></div></article>)}</section>
   </>
 }

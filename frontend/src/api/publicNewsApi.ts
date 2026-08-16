@@ -8,6 +8,7 @@ export type PublicNewsItem = {
   summary: string
   content?: string
   image: string
+  gallery?: string[]
   publishedAt?: string
 }
 

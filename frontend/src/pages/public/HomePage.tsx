@@ -3,7 +3,8 @@ import { usePublicNews } from '../../api/publicNewsApi'
 
 const quickLinks = [
   ['/icon-book.svg', 'Православные школы', '/pravoslavnye-shkoly'],
-  ['/icon-graduation-cap.svg', 'Курсы и программы', '/kursy'],
+  ['/icon-graduation-cap.svg', 'Курсы', '/kursy'],
+  ['/icon-people.svg', 'Конкурсы', '/konkursy'],
   ['/icon-document.svg', 'Документы', '/dokumenty'],
   ['/icon-people.svg', 'Контакты', '/kontakty'],
 ]
@@ -18,11 +19,10 @@ export function HomePage() {
     <section className="official-hero">
       <div className="official-hero-copy">
         <h1>Образовательная деятельность<br /><span>Московской митрополии</span></h1>
-        <i />
-        <p className="hero-motto">Служение через образование ???</p>
+        <img className="hero-ornament" src="/ornament-divider.svg" alt="" />
       </div>
       <div className="official-hero-image">
-        <img src="/images/orthodox-classroom-hero.png" alt="Занятие в православной школе" />
+        <img src="/images/classroom-metropolitan-v6-quality.png" alt="Митрополит проводит занятие в православной школе" />
       </div>
     </section>
 

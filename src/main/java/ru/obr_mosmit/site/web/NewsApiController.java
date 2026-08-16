@@ -36,8 +36,8 @@ public class NewsApiController {
     private NewsDto dto(News item) {
         String date = item.getPublishedAt() == null ? "" : DATE.format(item.getPublishedAt().atZone(ZoneId.of("Europe/Moscow")));
         String publishedAt = item.getPublishedAt() == null ? "" : item.getPublishedAt().toString();
-        return new NewsDto(String.valueOf(item.getId()), date, item.getTitle(), item.getSummary(), item.getContent(), item.getCoverImageUrl(), publishedAt);
+        return new NewsDto(String.valueOf(item.getId()), date, item.getTitle(), item.getSummary(), item.getContent(), item.getCoverImageUrl(), item.getGalleryUrls()==null||item.getGalleryUrls().isBlank()?List.of():List.of(item.getGalleryUrls().split("\n")), publishedAt);
     }
 
-    public record NewsDto(String id, String date, String title, String summary, String content, String image, String publishedAt) {}
+    public record NewsDto(String id, String date, String title, String summary, String content, String image, List<String> gallery, String publishedAt) {}
 }

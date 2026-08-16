@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { loadSchool } from '../../api/schoolsApi'
+import { htmlToPlainText } from '../../utils/plainText'
 
 function hasVisibleContent(html: string) {
   const document = new DOMParser().parseFromString(html, 'text/html')
@@ -44,9 +45,10 @@ export function SchoolDetailPage() {
         <h2>{sections[activeSection].title}</h2>
         <div>{sections[activeSection].fields.map((field, index) => <section className="school-group-item" key={`${field.label}-${index}`}>
           <h3>{field.label}</h3>
-          <div dangerouslySetInnerHTML={{ __html: field.content }} />
+          <div className="school-plain-content">{htmlToPlainText(field.content).split(/\n\s*\n|\n/).map(part => part.trim()).filter(Boolean).map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph}</p>)}</div>
         </section>)}</div>
       </article>}
     </section> : <section className="school-empty-details">Информация о школе уточняется.</section>}
+    {!!school.gallery?.length && <section className="school-gallery-section"><span className="eyebrow">Фотографии</span><h2>Фотогалерея</h2><div className="school-gallery">{school.gallery.map((src,index)=><a href={src} target="_blank" rel="noreferrer" key={`${src}-${index}`}><img src={src} alt={`${school.title}, фотография ${index+1}`} loading="lazy"/></a>)}</div></section>}
   </main>
 }

@@ -1,16 +1,28 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
-const links = [
+const sectionLinks = [
   ['Новости', '/novosti'],
   ['Документы', '/dokumenty'],
   ['Православные школы', '/pravoslavnye-shkoly'],
+  ['Конкурсы', '/konkursy'],
   ['Курсы', '/kursy'],
   ['Контакты', '/kontakty'],
 ]
 
 export function PublicLayout() {
   const [open, setOpen] = useState(false)
+  const [role, setRole] = useState<string | null>(null)
+  const sectionsRef = useRef<HTMLDetailsElement>(null)
+  useEffect(() => {
+    const loadRole = () => fetch('/api/auth/me', { credentials: 'include' })
+      .then(response => response.ok ? response.json() : null)
+      .then(user => setRole(user?.role ?? null))
+      .catch(() => setRole(null))
+    void loadRole()
+    window.addEventListener('auth-changed', loadRole)
+    return () => window.removeEventListener('auth-changed', loadRole)
+  }, [])
 
   return <div className="public-site official-theme">
     <header className="official-header">
@@ -25,7 +37,13 @@ export function PublicLayout() {
         <span /><span /><span />
       </button>
       <nav className={open ? 'open' : ''}>
-        {links.map(([name, url]) => <NavLink key={url} to={url} onClick={() => setOpen(false)}>{name}</NavLink>)}
+        <details className="sections-menu" ref={sectionsRef} open={open || undefined}>
+          <summary><i aria-hidden="true"><b /><b /><b /></i>Меню</summary>
+          <div className="sections-dropdown">
+            {sectionLinks.map(([name, url]) => <NavLink key={url} to={url} onClick={() => { setOpen(false); sectionsRef.current?.removeAttribute('open') }}>{name}</NavLink>)}
+          </div>
+        </details>
+        <NavLink className="account-nav-link" to="/cabinet" onClick={() => setOpen(false)}>{role === 'ADMIN' ? 'Кабинет администратора' : 'Личный кабинет'}</NavLink>
       </nav>
     </header>
     <Outlet />
