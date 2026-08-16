@@ -1,20 +1,13 @@
-import { useEffect, useState } from 'react';
-type Contacts = {
-    city: string;
-    address: string;
-    publicEmail: string;
-    publicEmailNote: string;
-    chairmanRole: string;
-    chairmanName: string;
-    chairmanEmail: string;
-    assistantRole: string;
-    assistantName: string;
-    assistantEmail: string;
-};
+import { useEffect,useState } from 'react'
+type Contacts={city:string;address:string;publicEmail:string;publicEmailNote:string;chairmanRole:string;chairmanName:string;chairmanEmail:string;assistantRole:string;assistantName:string;assistantEmail:string}
+const clergyTitles=['Протоиерей','Иерей','Священник','Диакон','Протодиакон','Чтец','Монах','Иеромонах','Архимандрит','Игумен','Епископ','Митрополит']
+const splitPersonName=(value='')=>{const clean=value.trim();const title=clergyTitles.find(item=>clean.toLocaleLowerCase('ru').startsWith(item.toLocaleLowerCase('ru')+' '));return title?{title,name:clean.slice(title.length).trim()}:{title:'',name:clean}}
 export function ContactsPage() {
-    const [contacts, setContacts] = useState<Contacts>({ city: 'Московская область, г. Коломна', address: 'Голутвинская улица, 11', publicEmail: 'eorok@mail.ru', publicEmailNote: 'Для обращений и предложений о сотрудничестве', chairmanRole: 'Председатель отдела', chairmanName: 'Протоиерей Сергий Якимов', chairmanEmail: 'kolomna-obr@yandex.ru', assistantRole: 'Помощник председателя отдела', assistantName: 'Чтец Николай Казинов', assistantEmail: 'nkazinov@mail.ru' });
-    useEffect(() => { fetch('/api/contacts').then(r => r.json()).then(setContacts).catch(() => { }); }, []);
-    return <main>
+  const [contacts,setContacts]=useState<Contacts>({city:'Московская область, г. Коломна',address:'Голутвинская улица, 11',publicEmail:'eorok@mail.ru',publicEmailNote:'Для обращений и предложений о сотрудничестве',chairmanRole:'Председатель отдела',chairmanName:'Протоиерей Сергий Якимов',chairmanEmail:'kolomna-obr@yandex.ru',assistantRole:'Помощник председателя отдела',assistantName:'Чтец Николай Казинов',assistantEmail:'nkazinov@mail.ru'})
+  useEffect(()=>{fetch('/api/contacts').then(r=>r.json()).then(setContacts).catch(()=>{})},[])
+  const chairman=splitPersonName(contacts.chairmanName)
+  const assistant=splitPersonName(contacts.assistantName)
+  return <main>
     <section className="page-hero contacts-hero">
       <span className="eyebrow">Связаться с нами</span>
       <h1>Контакты</h1>
@@ -23,7 +16,7 @@ export function ContactsPage() {
     <section className="public-section contacts-page">
       <div className="contacts-card">
         <article>
-          <span className="contacts-icon" aria-hidden="true"><img src="/icon-location.svg" alt=""/></span>
+          <span className="contacts-icon" aria-hidden="true"><img src="/icon-location.svg" alt="" /></span>
           <div>
             <small>Адрес</small>
             <h2>{contacts.city}</h2>
@@ -31,7 +24,7 @@ export function ContactsPage() {
           </div>
         </article>
         <article>
-          <span className="contacts-icon" aria-hidden="true"><img src="/icon-mail.svg" alt=""/></span>
+          <span className="contacts-icon" aria-hidden="true"><img src="/icon-mail.svg" alt="" /></span>
           <div>
             <small>Электронная почта</small>
             <h2><a href={`mailto:${contacts.publicEmail}`}>{contacts.publicEmail}</a></h2>
@@ -47,13 +40,13 @@ export function ContactsPage() {
         </div>
         <div className="contacts-team-list">
           <article>
-            <small>{contacts.chairmanRole}</small><h3>{contacts.chairmanName}</h3><a className="contacts-team-email" href={`mailto:${contacts.chairmanEmail}`}>{contacts.chairmanEmail}</a>
+            <small>{contacts.chairmanRole}</small>{chairman.title&&<span className="contacts-clergy-title">{chairman.title}</span>}<h3>{chairman.name}</h3><a className="contacts-team-email" href={`mailto:${contacts.chairmanEmail}`}>{contacts.chairmanEmail}</a>
           </article>
           <article>
-            <small>{contacts.assistantRole}</small><h3>{contacts.assistantName}</h3><a className="contacts-team-email" href={`mailto:${contacts.assistantEmail}`}>{contacts.assistantEmail}</a>
+            <small>{contacts.assistantRole}</small>{assistant.title&&<span className="contacts-clergy-title">{assistant.title}</span>}<h3>{assistant.name}</h3><a className="contacts-team-email" href={`mailto:${contacts.assistantEmail}`}>{contacts.assistantEmail}</a>
           </article>
         </div>
       </section>
     </section>
-  </main>;
+  </main>
 }

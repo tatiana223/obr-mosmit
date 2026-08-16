@@ -1,56 +1,94 @@
-import { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+
 type Me = {
-    id: number;
-    email: string;
-    displayName: string;
-    role: 'ADMIN' | 'USER';
-};
-type Competition = {
-    id: number;
-    title: string;
-    deadline?: string;
-    published: boolean;
-    cover?: string;
-};
-type Application = {
-    id: number;
-    competitionTitle: string;
-    participantName: string;
-    schoolName: string;
-    status: string;
-    adminComment?: string;
-};
-const request = async (url: string, options?: RequestInit) => { const r = await fetch(url, { credentials: 'include', headers: { 'Content-Type': 'application/json', ...(options?.headers || {}) }, ...options }); if (!r.ok)
-    throw new Error(await r.text() || 'Ошибка'); return r.status === 204 ? null : r.json(); };
+  id: number
+  email: string
+  displayName: string
+  role: 'ADMIN' | 'USER'
+}
+
+const request = async (url: string, options?: RequestInit) => {
+  const response = await fetch(url, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options?.headers || {}),
+    },
+    ...options,
+  })
+
+  if (!response.ok) throw new Error((await response.text()) || 'Ошибка входа')
+  return response.status === 204 ? null : response.json()
+}
+
 export function CabinetPage() {
-    const [me, setMe] = useState<Me | null>(null), [mode, setMode] = useState<'login' | 'register'>('login'), [error, setError] = useState(''), [competitions, setCompetitions] = useState<Competition[]>([]), [applications, setApplications] = useState<Application[]>([]), [selected, setSelected] = useState<Competition | null>(null);
-    const acceptUser = (user: Me) => { window.dispatchEvent(new Event('auth-changed')); if (user.role === 'ADMIN') {
-        window.location.href = '/control-center';
-        return;
-    } setMe(user); };
-    const load = () => Promise.all([request('/api/auth/me').then(acceptUser).catch(() => setMe(null)), request('/api/competitions').then(setCompetitions)]);
-    useEffect(() => { load(); }, []);
-    useEffect(() => { if (me)
-        request('/api/cabinet/applications').then(setApplications); }, [me]);
-    const auth = async (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); setError(''); const data = Object.fromEntries(new FormData(e.currentTarget)); try {
-        const user = await request(`/api/auth/${mode}`, { method: 'POST', body: JSON.stringify(data) });
-        acceptUser(user);
+  const navigate = useNavigate()
+  const [checking, setChecking] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    request('/api/auth/me')
+      .then((user: Me) => {
+        if (user?.role === 'ADMIN') navigate('/control-center', { replace: true })
+      })
+      .catch(() => undefined)
+      .finally(() => setChecking(false))
+  }, [navigate])
+
+  const login = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError('')
+    const data = Object.fromEntries(new FormData(event.currentTarget))
+
+    try {
+      const user: Me = await request('/api/auth/login', { method: 'POST', body: JSON.stringify(data) })
+      if (user.role !== 'ADMIN') {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+        setError('Доступ разрешён только администратору сайта.')
+        return
+      }
+      window.dispatchEvent(new Event('auth-changed'))
+      navigate('/control-center', { replace: true })
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Не удалось выполнить вход')
     }
-    catch (x) {
-        setError((x as Error).message);
-    } };
-    const apply = async (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); if (!selected)
-        return; const data = Object.fromEntries(new FormData(e.currentTarget)); try {
-        await request('/api/cabinet/applications', { method: 'POST', body: JSON.stringify({ ...data, competitionId: selected.id }) });
-        setSelected(null);
-        setApplications(await request('/api/cabinet/applications'));
-    }
-    catch (x) {
-        setError((x as Error).message);
-    } };
-    const logout = async () => { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); setMe(null); setApplications([]); setSelected(null); window.dispatchEvent(new Event('auth-changed')); };
-    if (!me)
-        return <main><section className="page-hero"><span className="eyebrow">Единый вход</span><h1>{mode === 'login' ? 'Вход в личный кабинет' : 'Регистрация участника'}</h1><p>{mode === 'login' ? 'Для участников и администраторов сайта. После входа откроется кабинет в соответствии с вашей ролью.' : 'Создайте аккаунт, чтобы подавать заявки на конкурсы и отслеживать их статус.'}</p></section><section className="public-section"><form className="cabinet-form" onSubmit={auth}>{mode === 'register' && <label>Имя и фамилия<input name="displayName" required/></label>}<label>{mode === 'login' ? 'Логин или электронная почта' : 'Электронная почта'}<input name="email" type={mode === 'register' ? 'email' : 'text'} required/></label><label>Пароль<input name="password" type="password" minLength={8} required/></label>{error && <p className="form-error">{error}</p>}<button className="button primary">{mode === 'login' ? 'Войти' : 'Создать аккаунт'}</button><button type="button" className="text-button" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>{mode === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти'}</button></form></section></main>;
-    return <main><section className="page-hero cabinet-hero"><div><span className="eyebrow">Личный кабинет</span><h1>{me.displayName}</h1><p>{me.email} · {me.role === 'ADMIN' ? 'Администратор' : 'Участник'}</p></div><button className="button secondary" onClick={logout}>Выйти</button></section><section className="public-section cabinet-grid"><div><h2>Доступные конкурсы</h2>{competitions.map(c => <article className="cabinet-card" key={c.id}>{c.cover && <img className="competition-cover" src={c.cover} alt={`Обложка конкурса «${c.title}»`}/>}<small>{c.deadline ? 'Приём до ' + c.deadline : 'Срок не ограничен'}</small><h3>{c.title}</h3><button className="button primary" onClick={() => setSelected(c)}>Подать заявку</button></article>)}</div><div><h2>Мои заявки</h2>{applications.length === 0 ? <p>Заявок пока нет.</p> : applications.map(a => <article className="cabinet-card" key={a.id}><span className={`badge ${a.status.toLowerCase()}`}>{a.status === 'NEW' ? 'На рассмотрении' : a.status === 'ACCEPTED' ? 'Принята' : 'Отклонена'}</span><h3>{a.competitionTitle}</h3><p>{a.participantName} · {a.schoolName}</p>{a.adminComment && <small>Комментарий: {a.adminComment}</small>}</article>)}</div></section>{selected && <div className="modal-backdrop"><form className="cabinet-form modal" onSubmit={apply}><h2>{selected.title}</h2><label>ФИО участника<input name="participantName" required/></label><label>Школа<input name="schoolName" required/></label><label>Возрастная группа<input name="ageGroup"/></label><label>Комментарий<textarea name="comment" rows={4}/></label>{error && <p className="form-error">{error}</p>}<div className="form-actions"><button type="button" className="button secondary" onClick={() => setSelected(null)}>Отмена</button><button className="button primary">Отправить</button></div></form></div>}</main>;
+  }
+
+  if (checking) return <main className="admin-access-check"><p>Проверяем доступ…</p></main>
+
+  return (
+    <main className="admin-login-page admin-login-elegant official-theme">
+      <section className="admin-login-elegant-card">
+        <div className="admin-login-brand">
+          <img src="/metropolia-emblem.svg" alt="" aria-hidden="true" />
+          <span>Московская митрополия</span>
+        </div>
+
+        <header>
+          <span>Администрирование</span>
+          <h1>Кабинет администратора</h1>
+          <p>Войдите, чтобы управлять материалами сайта.</p>
+        </header>
+
+        <div className="admin-login-divider" aria-hidden="true"><i /><b>✦</b><i /></div>
+
+        <form className="cabinet-form admin-login-form" onSubmit={login}>
+          <label>
+            Логин или электронная почта
+            <input name="email" type="text" autoComplete="username" required />
+          </label>
+          <label>
+            Пароль
+            <input name="password" type="password" autoComplete="current-password" required />
+          </label>
+          {error && <p className="form-error">{error}</p>}
+          <button className="button primary admin-login-submit" type="submit">Войти</button>
+        </form>
+
+        <NavLink className="admin-login-back" to="/">← Вернуться на сайт</NavLink>
+      </section>
+    </main>
+  )
 }

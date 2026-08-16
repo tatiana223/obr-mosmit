@@ -90,6 +90,7 @@
 .official-hero-copy h1 { margin: 0; color: var(--green-dark); font: 400 clamp(48px, 5vw, 76px)/.98 Georgia, 'Times New Roman', serif; letter-spacing: -.025em; }
 .official-hero-copy h1 span { display: inline-block; margin-top: 8px; font-size: .58em; line-height: 1.1; letter-spacing: 0; }
 .official-hero-copy > i { width: 58px; height: 2px; background: var(--gold); margin: 28px 0 22px; }
+.official-hero-copy .hero-ornament { width: 180px; height: 32px; margin: 25px 0 18px; display: block; object-fit: contain; object-position: left center; }
 .official-hero-copy p { margin: 0; font-size: 16px; line-height: 1.75; }
 .official-hero-copy .hero-motto { color: #665639; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
 .official-hero-image { min-width: 0; overflow: hidden; background: var(--green-dark); }
@@ -602,3 +603,10 @@
   .official-theme .documents-section .document-category-grid > a:nth-child(2n),
   .official-theme .documents-section .document-category-grid > a:nth-child(3n) { border-right: 0; }
 }
+
+
+/* Contact person title separated from the person's name */
+.contacts-clergy-title { display:block; margin:0 0 4px; color:var(--gold); font:italic 14px/1.4 Georgia,serif; }
+.contact-person-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px; margin:0 0 26px; padding:20px; border:1px solid var(--admin-line,#d8cdbf); background:#fffdf9; }
+.contact-person-fields label { margin:0!important; }
+@media(max-width:760px){.contact-person-fields{grid-template-columns:1fr}}
