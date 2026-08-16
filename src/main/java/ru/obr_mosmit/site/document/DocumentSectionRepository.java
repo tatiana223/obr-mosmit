@@ -1,1 +1,0 @@
-package ru.obr_mosmit.site.document;import java.util.*;import org.springframework.data.jpa.repository.JpaRepository;public interface DocumentSectionRepository extends JpaRepository<DocumentSection,Long>{List<DocumentSection> findAllByOrderBySortOrderAscTitleAsc();Optional<DocumentSection> findBySlug(String slug);}

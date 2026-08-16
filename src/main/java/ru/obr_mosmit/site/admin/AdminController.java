@@ -11,11 +11,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.validation.BindingResult;
 import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.obr_mosmit.site.news.NewsForm;
-import ru.obr_mosmit.site.news.LegacyNewsImporter;
-import ru.obr_mosmit.site.news.NewsRepository;
-import ru.obr_mosmit.site.news.NewsService;
-import ru.obr_mosmit.site.news.NewsStatus;
+import ru.obr_mosmit.site.dto.NewsForm;
+import ru.obr_mosmit.site.service.importer.LegacyNewsImporter;
+import ru.obr_mosmit.site.repository.NewsRepository;
+import ru.obr_mosmit.site.service.NewsService;
+import ru.obr_mosmit.site.entity.NewsStatus;
 
 @Controller
 public class AdminController {

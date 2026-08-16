@@ -1,2 +1,0 @@
-package ru.obr_mosmit.site.web;import org.springframework.web.bind.annotation.*;import ru.obr_mosmit.site.contact.*;
-@RestController public class ContactApiController{private final SiteContactRepository contacts;public ContactApiController(SiteContactRepository c){contacts=c;}@GetMapping("/api/contacts")SiteContact get(){return contacts.findById(1L).orElseThrow();}@PutMapping("/api/admin/contacts")SiteContact save(@RequestBody SiteContact value){return contacts.save(value);}}
