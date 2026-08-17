@@ -1418,10 +1418,51 @@ td.yes {
   }
 }
 
+.table-wrap--access {
+  width: fit-content;
+  max-width: min(100%, 44rem);
+}
+
+.access-codes-table {
+  width: auto;
+  min-width: 0;
+  table-layout: auto;
+}
+
+.access-codes-table th,
+.access-codes-table td {
+  padding: 0.45rem 0.5rem;
+  white-space: nowrap;
+}
+
+.access-codes-table th:first-child,
+.access-codes-table td:first-child {
+  white-space: normal;
+  width: 100%;
+  min-width: 8rem;
+}
+
+.access-codes-table th:nth-child(2),
+.access-codes-table td:nth-child(2),
+.access-codes-table th:nth-child(3),
+.access-codes-table td:nth-child(3) {
+  width: 1%;
+}
+
+.access-codes-table .row-actions {
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+}
+
+.access-codes-table .row-actions .btn {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.78rem;
+}
+
 .access-code {
   display: inline-block;
-  padding: 0.2rem 0.55rem;
-  font: 700 0.95rem/1.3 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  padding: 0.15rem 0.45rem;
+  font: 700 0.88rem/1.3 ui-monospace, "Cascadia Mono", Consolas, monospace;
   letter-spacing: 0.06em;
   color: var(--accent-strong);
   background: rgba(122, 91, 46, 0.08);
@@ -1443,6 +1484,17 @@ td.yes {
 .row-actions .btn {
   padding: 0.35rem 0.7rem;
   font-size: 0.82rem;
+}
+
+@media (max-width: 640px) {
+  .access-codes-table th,
+  .access-codes-table td {
+    white-space: normal;
+  }
+
+  .access-codes-table .row-actions {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 840px) {
