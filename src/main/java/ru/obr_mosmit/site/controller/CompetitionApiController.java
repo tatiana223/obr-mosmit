@@ -19,18 +19,24 @@ public class CompetitionApiController {
  @GetMapping("/api/competitions") List<CompetitionDto> publicList(){return competitions.findAllByPublishedTrueOrderByDeadlineAsc().stream().map(this::competitionDto).toList();}
  @PostMapping("/api/competition-applications") ResponseEntity<?> apply(@RequestBody PublicApplicationRequest r){
   if(r.competitionId()==null||blank(r.participantName())||blank(r.email())||blank(r.schoolName())||!r.consent())return ResponseEntity.badRequest().body("Заполните обязательные поля и подтвердите согласие на обработку данных");
-  Competition c=competitions.findById(r.competitionId()).filter(Competition::isPublished).orElse(null); if(c==null)return ResponseEntity.badRequest().body("Конкурс недоступен");
-  String email=r.email().trim().toLowerCase(Locale.ROOT); if(applications.existsByCompetitionIdAndParticipantEmailIgnoreCase(c.getId(),email))return ResponseEntity.status(409).body("Заявка с этой почтой на конкурс уже отправлена");
+  Competition c=competitions.findById(r.competitionId()).filter(Competition::isPublished).orElse(null);if(c==null)return ResponseEntity.badRequest().body("Конкурс недоступен");
+  String email=normalizeEmail(r.email());if(applications.existsByCompetitionIdAndParticipantEmailIgnoreCase(c.getId(),email))return ResponseEntity.status(409).body("Заявка с этой почтой на конкурс уже отправлена");
   CompetitionApplication a=new CompetitionApplication();a.setCompetition(c);a.setTrackingCode(newCode());a.setParticipantEmail(email);a.setParticipantPhone(clean(r.phone()));a.setParticipantName(r.participantName().trim());a.setSchoolName(r.schoolName().trim());a.setAgeGroup(clean(r.ageGroup()));a.setComment(clean(r.comment()));return ResponseEntity.ok(applicationDto(applications.save(a)));
  }
- @GetMapping("/api/competition-applications/status") ResponseEntity<?> status(@RequestParam String code,@RequestParam String email){return applications.findByTrackingCodeIgnoreCaseAndParticipantEmailIgnoreCase(code.trim(),email.trim()).<ResponseEntity<?>>map(a->ResponseEntity.ok(applicationDto(a))).orElseGet(()->ResponseEntity.notFound().build());}
+ @GetMapping(value={"/api/competition-applications","/api/competition-applications/status"}) ResponseEntity<List<ApplicationDto>> status(@RequestParam String email){
+  if(blank(email))return ResponseEntity.ok(List.of());
+  String normalized=normalizeEmail(email);
+  List<ApplicationDto> result=applications.findAllByParticipantEmailIgnoreCaseOrderByCreatedAtDesc(normalized).stream().map(this::applicationDto).toList();
+  return ResponseEntity.ok(result);
+ }
  @GetMapping("/api/admin/competitions") List<CompetitionDto> all(){return competitions.findAllByOrderByCreatedAtDesc().stream().map(this::competitionDto).toList();}
  @PostMapping("/api/admin/competitions") CompetitionDto saveCompetition(@RequestBody CompetitionRequest r){Competition c=r.id()==null?new Competition():competitions.findById(r.id()).orElseThrow();c.setTitle(r.title());c.setDeadline(r.deadline());c.setPublished(r.published());if(c.getDescription()==null)c.setDescription("");return competitionDto(competitions.save(c));}
  @DeleteMapping("/api/admin/competitions/{id}") void deleteCompetition(@PathVariable Long id){competitions.deleteById(id);}
  @GetMapping("/api/admin/applications") List<ApplicationDto> allApplications(){return applications.findAllByOrderByCreatedAtDesc().stream().map(this::applicationDto).toList();}
- @PatchMapping("/api/admin/applications/{id}") ApplicationDto review(@PathVariable Long id,@RequestBody ReviewRequest r){CompetitionApplication a=applications.findById(id).orElseThrow();a.setStatus(r.status());a.setAdminComment(r.adminComment());return applicationDto(applications.save(a));}
+ @PatchMapping("/api/admin/applications/{id}") ApplicationDto review(@PathVariable Long id,@RequestBody ReviewRequest r){CompetitionApplication a=applications.findById(id).orElseThrow();a.setStatus(r.status());a.setAdminComment(clean(r.adminComment()));return applicationDto(applications.save(a));}
  private String newCode(){String code;do{code="MOS-"+LocalDate.now().getYear()+"-"+UUID.randomUUID().toString().substring(0,6).toUpperCase(Locale.ROOT);}while(applications.existsByTrackingCode(code));return code;}
- private boolean blank(String s){return s==null||s.isBlank();} private String clean(String s){return blank(s)?null:s.trim();}
+ private String normalizeEmail(String value){return value.trim().toLowerCase(Locale.ROOT);}
+ private boolean blank(String s){return s==null||s.isBlank();}private String clean(String s){return blank(s)?null:s.trim();}
  private CompetitionDto competitionDto(Competition c){return new CompetitionDto(c.getId(),c.getTitle(),c.getDescription(),c.getDeadline(),c.isPublished(),c.getCoverImageUrl(),splitLines(c.getGalleryUrls()));}
  private ApplicationDto applicationDto(CompetitionApplication a){return new ApplicationDto(a.getId(),a.getCompetition().getId(),a.getCompetition().getTitle(),a.getTrackingCode(),a.getParticipantEmail(),a.getParticipantPhone(),a.getParticipantName(),a.getSchoolName(),a.getAgeGroup(),a.getComment(),a.getStatus(),a.getAdminComment(),a.getCreatedAt().toString());}
  private List<String> splitLines(String v){return v==null||v.isBlank()?List.of():Arrays.asList(v.split("\\n"));}
