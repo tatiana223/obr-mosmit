@@ -10,22 +10,28 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260817-access" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260817-org-tabs" />
   </head>
   <body>
     <main class="shell">
       <section class="hero">
-        <h1 class="brand">Кабинет организатора</h1>
         <p>Настройка формы, проставление мест участникам и общая таблица заявок.</p>
-        <div class="nav-links">
-          <a class="btn btn-secondary" href="/" target="_blank" rel="noopener noreferrer">Форма благочинного</a>
+        <div class="organizer-tabs-row">
+          <nav class="organizer-tabs" aria-label="Разделы организатора">
+            <button type="button" class="chip chip-btn is-active" data-tab="settings">Настройки</button>
+            <button type="button" class="chip chip-btn" data-tab="access">Коды доступа</button>
+            <button type="button" class="chip chip-btn" data-tab="winners">Участники</button>
+            <button type="button" class="chip chip-btn" data-tab="table">Таблица</button>
+          </nav>
+          <a
+            class="chip chip-btn organizer-user-form-link"
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Форма пользователя
+          </a>
         </div>
-        <nav class="organizer-tabs" aria-label="Разделы организатора">
-          <button type="button" class="chip chip-btn is-active" data-tab="settings">Настройки</button>
-          <button type="button" class="chip chip-btn" data-tab="access">Коды доступа</button>
-          <button type="button" class="chip chip-btn" data-tab="winners">Участники</button>
-          <button type="button" class="chip chip-btn" data-tab="table">Таблица</button>
-        </nav>
       </section>
 
       <section class="panel organizer-panel" data-panel="settings">
