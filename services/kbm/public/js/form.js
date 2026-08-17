@@ -117,6 +117,13 @@ const responsiblePhoneInput = document.getElementById('responsiblePhone');
 const responsibleStatus = document.getElementById('responsibleStatus');
 const closeResponsibleBtn = document.getElementById('closeResponsibleBtn');
 const cancelResponsibleBtn = document.getElementById('cancelResponsibleBtn');
+const deaneryAccessOverlay = document.getElementById('deaneryAccessOverlay');
+const deaneryAccessForm = document.getElementById('deaneryAccessForm');
+const deaneryAccessLead = document.getElementById('deaneryAccessLead');
+const deaneryAccessCodeInput = document.getElementById('deaneryAccessCode');
+const deaneryAccessStatus = document.getElementById('deaneryAccessStatus');
+const closeDeaneryAccessBtn = document.getElementById('closeDeaneryAccessBtn');
+const cancelDeaneryAccessBtn = document.getElementById('cancelDeaneryAccessBtn');
 const addressChipBtn = document.getElementById('addressChipBtn');
 const addressOverlay = document.getElementById('addressOverlay');
 const closeAddressBtn = document.getElementById('closeAddressBtn');
@@ -770,6 +777,140 @@ function normalizeDeanery(value) {
 }
 
 const SELECTION_STORAGE_KEY = 'kbm-form-selection';
+const ACCESS_STORAGE_KEY = 'kbm-deanery-access-codes';
+
+/** @type {Map<string, string>} */
+const deaneryAccessCodes = new Map();
+let pendingAccessDeanery = '';
+/** @type {((ok: boolean) => void) | null} */
+let accessResolver = null;
+
+function readStoredAccessCodes() {
+  try {
+    const raw = sessionStorage.getItem(ACCESS_STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== 'object') return;
+    for (const [deanery, code] of Object.entries(data)) {
+      const key = normalizeDeanery(deanery);
+      const value = String(code || '').trim();
+      if (key && value) deaneryAccessCodes.set(key, value);
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function persistAccessCodes() {
+  try {
+    const payload = Object.fromEntries(deaneryAccessCodes.entries());
+    sessionStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore
+  }
+}
+
+function getUnlockedCode(deanery) {
+  const key = normalizeDeanery(deanery);
+  return key ? deaneryAccessCodes.get(key) || '' : '';
+}
+
+function setUnlockedCode(deanery, code) {
+  const key = normalizeDeanery(deanery);
+  const value = String(code || '').trim();
+  if (!key || !value) return;
+  deaneryAccessCodes.set(key, value);
+  persistAccessCodes();
+}
+
+function deaneryAuthHeaders(deanery = deanerySelect.value) {
+  const key = normalizeDeanery(deanery);
+  const code = getUnlockedCode(key);
+  const headers = { 'Content-Type': 'application/json' };
+  if (key) headers['X-Deanery'] = key;
+  if (code) headers['X-Deanery-Code'] = code;
+  return headers;
+}
+
+function showDeaneryAccessStatus(message, isError = false) {
+  if (!deaneryAccessStatus) return;
+  const text = String(message || '').trim();
+  deaneryAccessStatus.textContent = text;
+  deaneryAccessStatus.classList.toggle('show', Boolean(text));
+  deaneryAccessStatus.classList.toggle('error', Boolean(text) && isError);
+}
+
+function openDeaneryAccessOverlay(deanery) {
+  pendingAccessDeanery = normalizeDeanery(deanery);
+  if (deaneryAccessLead) {
+    deaneryAccessLead.textContent = pendingAccessDeanery
+      ? `Введите код доступа для благочиния «${pendingAccessDeanery}», полученный от организатора.`
+      : 'Введите код доступа, полученный от организатора.';
+  }
+  if (deaneryAccessCodeInput) {
+    deaneryAccessCodeInput.value = '';
+  }
+  showDeaneryAccessStatus('');
+  deaneryAccessOverlay?.classList.add('open');
+  deaneryAccessOverlay?.setAttribute('aria-hidden', 'false');
+  requestAnimationFrame(() => deaneryAccessCodeInput?.focus());
+}
+
+function closeDeaneryAccessOverlay(result = false) {
+  deaneryAccessOverlay?.classList.remove('open');
+  deaneryAccessOverlay?.setAttribute('aria-hidden', 'true');
+  pendingAccessDeanery = '';
+  if (accessResolver) {
+    const resolve = accessResolver;
+    accessResolver = null;
+    resolve(Boolean(result));
+  }
+}
+
+async function isDeaneryAccessRequired(deanery) {
+  const key = normalizeDeanery(deanery);
+  if (!key) return false;
+  const response = await fetch(`/api/deanery-access/status?deanery=${encodeURIComponent(key)}`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Не удалось проверить доступ');
+  return Boolean(data.required);
+}
+
+async function verifyDeaneryAccessCode(deanery, code) {
+  const response = await fetch('/api/deanery-access/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deanery, code }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Неверный код доступа');
+  return true;
+}
+
+/** Запрашивает код, если он нужен и ещё не введён в этой сессии. */
+async function ensureDeaneryAccess(deanery) {
+  const key = normalizeDeanery(deanery);
+  if (!key) return true;
+  if (getUnlockedCode(key)) return true;
+
+  let required = false;
+  try {
+    required = await isDeaneryAccessRequired(key);
+  } catch (error) {
+    showStatus(error.message || 'Не удалось проверить доступ', true);
+    return false;
+  }
+  if (!required) return true;
+
+  return new Promise((resolve) => {
+    if (accessResolver) {
+      accessResolver(false);
+      accessResolver = null;
+    }
+    accessResolver = resolve;
+    openDeaneryAccessOverlay(key);
+  });
+}
 
 function readStoredSelection() {
   try {
@@ -1608,7 +1749,15 @@ document.addEventListener(
   true
 );
 
-openOverlayBtn.addEventListener('click', openOverlay);
+openOverlayBtn.addEventListener('click', async () => {
+  if (!normalizeDeanery(deanerySelect.value)) {
+    showStatus('Сначала выберите благочиние.', true);
+    return;
+  }
+  const unlocked = await ensureDeaneryAccess(deanerySelect.value);
+  if (!unlocked) return;
+  openOverlay();
+});
 
 downloadCsvBtn?.addEventListener('click', async () => {
   const diocese = dioceseSelect.value.trim();
@@ -1734,7 +1883,7 @@ responsibleForm?.addEventListener('submit', async (event) => {
   try {
     const appResponse = await fetch('/api/application', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: deaneryAuthHeaders(deanery),
       body: JSON.stringify({
         responsible: { fullName, phone },
       }),
@@ -1746,7 +1895,7 @@ responsibleForm?.addEventListener('submit', async (event) => {
 
     const response = await fetch('/api/submit-review', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: deaneryAuthHeaders(deanery),
       body: JSON.stringify({
         diocese,
         deanery,
@@ -1816,6 +1965,8 @@ function closeConfirmOverlay(result) {
 cancelOverlayBtn.addEventListener('click', closeOverlay);
 closeResponsibleBtn?.addEventListener('click', closeResponsibleOverlay);
 cancelResponsibleBtn?.addEventListener('click', closeResponsibleOverlay);
+closeDeaneryAccessBtn?.addEventListener('click', () => closeDeaneryAccessOverlay(false));
+cancelDeaneryAccessBtn?.addEventListener('click', () => closeDeaneryAccessOverlay(false));
 addressChipBtn?.addEventListener('click', openAddressOverlay);
 closeAddressBtn?.addEventListener('click', closeAddressOverlay);
 closeAddressActionBtn?.addEventListener('click', closeAddressOverlay);
@@ -1835,6 +1986,32 @@ responsibleOverlay?.addEventListener('click', (event) => {
   if (event.target === responsibleOverlay) closeResponsibleOverlay();
 });
 
+deaneryAccessOverlay?.addEventListener('click', (event) => {
+  if (event.target === deaneryAccessOverlay) closeDeaneryAccessOverlay(false);
+});
+
+deaneryAccessForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const deanery = pendingAccessDeanery || normalizeDeanery(deanerySelect.value);
+  const code = String(deaneryAccessCodeInput?.value || '').trim();
+  if (!deanery) {
+    showDeaneryAccessStatus('Сначала выберите благочиние.', true);
+    return;
+  }
+  if (!code) {
+    showDeaneryAccessStatus('Введите код доступа.', true);
+    return;
+  }
+  try {
+    await verifyDeaneryAccessCode(deanery, code);
+    setUnlockedCode(deanery, code);
+    showDeaneryAccessStatus('Доступ открыт.');
+    closeDeaneryAccessOverlay(true);
+  } catch (error) {
+    showDeaneryAccessStatus(error.message || 'Неверный код доступа.', true);
+  }
+});
+
 addressOverlay?.addEventListener('click', (event) => {
   if (event.target === addressOverlay) closeAddressOverlay();
 });
@@ -1842,7 +2019,7 @@ addressOverlay?.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
   // Пока открыт оверлей участника — Escape ничего не делает
-  if (overlay.classList.contains('open') && !confirmOverlay?.classList.contains('open') && !noticeOverlay?.classList.contains('open')) {
+  if (overlay.classList.contains('open') && !confirmOverlay?.classList.contains('open') && !noticeOverlay?.classList.contains('open') && !deaneryAccessOverlay?.classList.contains('open')) {
     return;
   }
   if (noticeOverlay?.classList.contains('open')) {
@@ -1851,6 +2028,10 @@ document.addEventListener('keydown', (event) => {
   }
   if (confirmOverlay?.classList.contains('open')) {
     closeConfirmOverlay(false);
+    return;
+  }
+  if (deaneryAccessOverlay?.classList.contains('open')) {
+    closeDeaneryAccessOverlay(false);
     return;
   }
   if (addressOverlay?.classList.contains('open')) {
@@ -1971,7 +2152,7 @@ workForm.addEventListener('submit', async (event) => {
     const isEdit = Boolean(editingId);
     const response = await fetch(isEdit ? `/api/participants/${editingId}` : '/api/participants', {
       method: isEdit ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: deaneryAuthHeaders(payload.deanery),
       body: JSON.stringify(payload),
     });
     const result = await response.json().catch(() => ({}));
@@ -2015,6 +2196,7 @@ deaneryParticipantsList.addEventListener('click', async (event) => {
     try {
       const response = await fetch(`/api/participants/${encodeURIComponent(id)}`, {
         method: 'DELETE',
+        headers: deaneryAuthHeaders(deanerySelect.value),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'Не удалось удалить участника');
@@ -2119,6 +2301,16 @@ deanerySelect.addEventListener('change', async () => {
     suppressDeaneryChange = false;
   }
 
+  if (nextValue) {
+    const unlocked = await ensureDeaneryAccess(nextValue);
+    if (!unlocked) {
+      suppressDeaneryChange = true;
+      deanerySelect.value = previousValue || '';
+      suppressDeaneryChange = false;
+      return;
+    }
+  }
+
   lastConfirmedDeanery = nextValue;
   draft.deanery = nextValue;
   draft.diocese = dioceseSelect.value;
@@ -2129,6 +2321,32 @@ deanerySelect.addEventListener('change', async () => {
   syncParticipantIndex();
   await syncCertificateButton();
 });
+
+async function loadDeaneries() {
+  const response = await fetch('/deaneries.json');
+  const list = await response.json();
+  if (!Array.isArray(list)) return;
+
+  const placeholder = deanerySelect.querySelector('option[value=""]');
+  deanerySelect.innerHTML = '';
+  if (placeholder) {
+    deanerySelect.appendChild(placeholder);
+  } else {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Выберите благочиние';
+    deanerySelect.appendChild(option);
+  }
+
+  for (const name of list) {
+    const value = String(name || '').trim();
+    if (!value) continue;
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    deanerySelect.appendChild(option);
+  }
+}
 
 async function loadDioceses() {
   const response = await fetch('/dioceses.json');
@@ -2152,6 +2370,17 @@ async function loadDioceses() {
   const stored = readStoredSelection();
   if (stored?.diocese || stored?.deanery) {
     restoreStoredSelection();
+    if (stored.deanery) {
+      const unlocked = await ensureDeaneryAccess(stored.deanery);
+      if (!unlocked) {
+        suppressDeaneryChange = true;
+        deanerySelect.value = '';
+        suppressDeaneryChange = false;
+        lastConfirmedDeanery = '';
+        draft.deanery = '';
+        persistSelection(dioceseSelect.value, '');
+      }
+    }
     return;
   }
 
@@ -2164,6 +2393,8 @@ async function loadDioceses() {
 }
 
 await loadSiteSettings();
+readStoredAccessCodes();
+await loadDeaneries().catch(() => {});
 await loadDioceses().catch(() => {});
 refreshParticipantsCache().catch(() => {
   participantsCache = [];

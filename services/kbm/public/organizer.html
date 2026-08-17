@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260813-clarify" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260817-access" />
   </head>
   <body>
     <main class="shell">
@@ -22,6 +22,7 @@
         </div>
         <nav class="organizer-tabs" aria-label="Разделы организатора">
           <button type="button" class="chip chip-btn is-active" data-tab="settings">Настройки</button>
+          <button type="button" class="chip chip-btn" data-tab="access">Коды доступа</button>
           <button type="button" class="chip chip-btn" data-tab="winners">Участники</button>
           <button type="button" class="chip chip-btn" data-tab="table">Таблица</button>
         </nav>
@@ -68,6 +69,44 @@
           </div>
         </form>
         <div class="status" id="settingsStatus" role="status"></div>
+      </section>
+
+      <section class="panel organizer-panel" data-panel="access" hidden>
+        <div class="admin-toolbar">
+          <div>
+            <h2>Коды доступа благочиний</h2>
+            <p class="lead" style="margin-bottom: 0">
+              Сгенерируйте коды и отправьте их представителям благочиний по электронной почте.
+              Без кода форма заявки для благочиния недоступна.
+            </p>
+          </div>
+          <div class="nav-links" style="margin: 0">
+            <button type="button" class="btn btn-primary" id="generateAllAccessBtn">
+              Сгенерировать все
+            </button>
+            <button type="button" class="btn btn-ghost" id="copyAllAccessBtn">
+              Копировать все
+            </button>
+          </div>
+        </div>
+        <div class="status" id="accessStatus" role="status"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Благочиние</th>
+                <th>Код</th>
+                <th>Обновлён</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="accessCodesBody">
+              <tr>
+                <td colspan="4">Загружаем коды…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section class="panel organizer-panel" data-panel="winners" hidden>
@@ -160,6 +199,6 @@
       </div>
     </div>
 
-    <script type="module" src="/js/organizer.js?v=20260813-clarify"></script>
+    <script type="module" src="/js/organizer.js?v=20260817-access"></script>
   </body>
 </html>
