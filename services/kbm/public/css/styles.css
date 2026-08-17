@@ -1464,3 +1464,23 @@ td.yes {
     padding-right: 1rem;
   }
 }
+
+/* Embedded in the site admin page: no nested page chrome / scroll box */
+html.is-embedded,
+html.is-embedded body {
+  min-height: 0;
+  background: transparent;
+  background-image: none;
+  background-attachment: scroll;
+}
+
+html.is-embedded .shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 0 1.5rem;
+}
+
+html.is-embedded .hero {
+  border-radius: 18px;
+}
