@@ -101,7 +101,7 @@ export function PublicLayout() {
   return <div className="public-site official-theme">
     <header className="official-header" ref={headerRef}>
       <NavLink className="official-brand" to="/" aria-label="На главную">
-        <img className="official-emblem" src="/metropolia-emblem.svg" alt="Эмблема Московской митрополии" />
+        <img className="official-emblem" src="/metropolia-emblem.png" alt="Эмблема Московской митрополии" />
         <span className="official-title">
           Отдел по координации духовно-просветительской, образовательной деятельности Московской митрополии
         </span>
