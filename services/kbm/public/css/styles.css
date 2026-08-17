@@ -823,7 +823,41 @@ input:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-top: 0;
+}
+
+.organizer-tabs-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
   margin-top: 0.9rem;
+}
+
+.organizer-user-form-link {
+  margin-left: auto;
+  text-decoration: none;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.organizer-user-form-link:hover {
+  color: var(--accent-strong);
+  background: rgba(122, 91, 46, 0.12);
+  border-color: rgba(122, 91, 46, 0.4);
+}
+
+@media (max-width: 700px) {
+  .organizer-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .organizer-user-form-link {
+    margin-left: 0;
+    text-align: center;
+  }
 }
 
 .organizer-filter {
