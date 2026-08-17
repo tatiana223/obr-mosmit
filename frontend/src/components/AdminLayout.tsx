@@ -70,7 +70,7 @@ export function AdminLayout() {
         <NavLink className="official-brand" to="/" aria-label="На главную">
           <img className="official-emblem" src="/metropolia-emblem.png" alt="Эмблема Московской митрополии" />
           <span className="official-title">
-            Отдел по координации духовно-просветительской, образовательной деятельности Московской митрополии
+            Кабинет администратора
           </span>
         </NavLink>
         <button
@@ -95,7 +95,6 @@ export function AdminLayout() {
       </header>
 
       <div className="admin-elegant-intro">
-        <h1 className="admin-elegant-title">Кабинет администратора</h1>
         <div className="admin-elegant-toolbar">
           <nav className="admin-elegant-nav" aria-label="Разделы кабинета">
             <div>
