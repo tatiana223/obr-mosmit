@@ -11,8 +11,48 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/styles.css?v=20260813-clarify" />
+    <link rel="stylesheet" href="/css/site-header.css?v=20260817-header" />
   </head>
   <body>
+    <div class="kbm-site-chrome">
+      <header class="official-header">
+        <a class="official-brand" href="__SITE_ROOT__/" aria-label="На главную">
+          <img
+            class="official-emblem"
+            src="__SITE_ROOT__/metropolia-emblem.svg"
+            alt="Эмблема Московской митрополии"
+          />
+          <span class="official-title">
+            Отдел по координации духовно-просветительской, образовательной деятельности
+            Московской митрополии
+          </span>
+        </a>
+        <button
+          class="menu-button"
+          type="button"
+          aria-expanded="false"
+          aria-label="Открыть меню"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <nav>
+          <details class="sections-menu">
+            <summary>
+              <i aria-hidden="true"><b></b><b></b><b></b></i>Меню
+            </summary>
+            <div class="sections-dropdown">
+              <a href="__SITE_ROOT__/novosti">Новости</a>
+              <a href="__SITE_ROOT__/dokumenty">Документы</a>
+              <a href="__SITE_ROOT__/pravoslavnye-shkoly">Образовательные организации</a>
+              <a href="__SITE_ROOT__/konkursy">Конкурсы</a>
+              <a href="__SITE_ROOT__/kursy">Курсы</a>
+              <a href="__SITE_ROOT__/kontakty">Контакты</a>
+            </div>
+          </details>
+        </nav>
+      </header>
+    </div>
+
     <main class="shell">
       <section class="hero">
         <h1 class="brand" id="heroBrand">Красота Божьего мира</h1>
@@ -453,6 +493,7 @@
       </div>
     </div>
 
+    <script src="/js/site-header.js?v=20260817-header"></script>
     <script type="module" src="/js/form.js?v=20260813-clarify"></script>
   </body>
 </html>

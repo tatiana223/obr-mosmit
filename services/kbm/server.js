@@ -161,6 +161,8 @@ function sendHtml(res, fileName) {
     html = html.replace(/<head>/i, `<head>${boot}`);
     html = html.replace(/(href|src)="\/(?!\/)/g, `$1="${BASE_PATH}/`);
   }
+  // Main-site links/assets (not under BASE_PATH): __SITE_ROOT__/novosti → /novosti
+  html = html.replaceAll('__SITE_ROOT__', '');
   res.type('html').send(html);
 }
 
