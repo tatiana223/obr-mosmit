@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom'
-
 export function AdminCompetitionsPage() {
   return (
     <>
@@ -16,9 +14,9 @@ export function AdminCompetitionsPage() {
           <h2>Красота Божьего мира</h2>
           <p>Заявки благочиний, проверка участников, места и дипломы.</p>
         </div>
-        <Link className="button primary" to="/control-center/competitions/krasota-bozhego-mira">
+        <a className="button primary" href="/konkursy/krasota-bozhego-mira/organizer">
           Кабинет организатора
-        </Link>
+        </a>
       </section>
     </>
   )
