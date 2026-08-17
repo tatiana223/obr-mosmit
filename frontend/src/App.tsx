@@ -24,6 +24,7 @@ import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminCoursesPage } from './pages/AdminCoursesPage';
 import { CoursesPage } from './pages/public/CoursesPage';
 import { MissionaryCatecheticalCoursesPage } from './pages/public/MissionaryCatecheticalCoursesPage';
+import { MissionaryCourseDetailPage } from './pages/public/MissionaryCourseDetailPage';
 import { AdminContactsPage } from './pages/AdminContactsPage';
 import { AdminDocumentsPage } from './pages/AdminDocumentsPage';
 import { DocumentEditorPage } from './pages/DocumentEditorPage';
@@ -43,6 +44,7 @@ export default function App() {
       <Route path="proverit-zayavku" element={<ApplicationStatusPage />}/>
       <Route path="kursy" element={<CoursesPage />}/>
       <Route path="kursy/missionersko-katehizatorskie-kursy" element={<MissionaryCatecheticalCoursesPage />}/>
+      <Route path="kursy/missionersko-katehizatorskie-kursy/:slug" element={<MissionaryCourseDetailPage />}/>
       <Route path="dokumenty" element={<DocumentsPage />}/>
       <Route path="dokumenty/razdel/:category" element={<DocumentCategoryPage />}/>
       <Route path="dokumenty/:id" element={<DocumentDetailPage />}/>

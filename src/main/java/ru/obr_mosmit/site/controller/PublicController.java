@@ -16,6 +16,7 @@ public class PublicController {
             "/konkursy",
             "/kursy",
             "/kursy/missionersko-katehizatorskie-kursy",
+            "/kursy/missionersko-katehizatorskie-kursy/{slug}",
             "/dokumenty",
             "/dokumenty/razdel/{category}",
             "/dokumenty/{id}",
