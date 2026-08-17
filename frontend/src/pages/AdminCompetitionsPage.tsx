@@ -3,9 +3,7 @@ export function AdminCompetitionsPage() {
     <>
       <header className="page-header">
         <div>
-          <span className="overline">Организационный отдел</span>
           <h1>Конкурсы</h1>
-          <p>Кабинеты организаторов конкурсов.</p>
         </div>
       </header>
 
