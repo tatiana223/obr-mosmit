@@ -138,11 +138,22 @@ $green:#123a28;$accent:#2b6946;$gold:#c1a05f;$bg:#f3f5f2;$line:#dfe6e0;$muted:#7
 
 /* ===== Balanced site-matched administrator interface ===== */
 .admin-elegant-shell{min-height:100vh;background:#f7f5f0;color:#4a403a}
+.admin-elegant-intro{
+  margin:0 auto;
+  padding:28px 0 0;
+}
+.admin-elegant-title{
+  margin:0 0 6px;
+  color:#3e2b23;
+  font:400 clamp(26px,3vw,34px)/1.15 Georgia,serif;
+  letter-spacing:.01em;
+}
 .admin-elegant-toolbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:18px;
+  width:100%;
   padding:0;
   background:transparent;
   border-bottom:0;
@@ -988,7 +999,7 @@ $green:#123a28;$accent:#2b6946;$gold:#c1a05f;$bg:#f3f5f2;$line:#dfe6e0;$muted:#7
 }
 
 /* One horizontal axis for the whole administrator interface. */
-.admin-elegant-toolbar,
+.admin-elegant-intro,
 .admin-elegant-workspace {
   width: min(var(--admin-frame-max), calc(100% - var(--admin-frame-gap)));
   max-width: none;
@@ -1139,7 +1150,7 @@ $green:#123a28;$accent:#2b6946;$gold:#c1a05f;$bg:#f3f5f2;$line:#dfe6e0;$muted:#7
 
 @media (max-width: 700px) {
   :root { --admin-frame-gap: 28px; }
-  .admin-elegant-toolbar,
+  .admin-elegant-intro,
   .admin-elegant-workspace {
     width: calc(100% - var(--admin-frame-gap));
   }
@@ -1294,7 +1305,7 @@ $green:#123a28;$accent:#2b6946;$gold:#c1a05f;$bg:#f3f5f2;$line:#dfe6e0;$muted:#7
   --admin-frame-side: 5.5%;
 }
 
-.admin-elegant-toolbar,
+.admin-elegant-intro,
 .admin-elegant-workspace {
   width: min(var(--admin-frame-max), calc(100% - (var(--admin-frame-side) * 2)));
   max-width: none;
@@ -1372,7 +1383,7 @@ $green:#123a28;$accent:#2b6946;$gold:#c1a05f;$bg:#f3f5f2;$line:#dfe6e0;$muted:#7
 
 @media (max-width: 900px) {
   :root { --admin-frame-side: 18px; }
-  .admin-elegant-toolbar,
+  .admin-elegant-intro,
   .admin-elegant-workspace {
     width: calc(100% - 36px);
   }

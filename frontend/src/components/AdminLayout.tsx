@@ -94,15 +94,18 @@ export function AdminLayout() {
         </nav>
       </header>
 
-      <div className="admin-elegant-toolbar">
-        <nav className="admin-elegant-nav" aria-label="Разделы кабинета">
-          <div>
-            {navItems.map(([label, to], index) =>
-              <NavLink key={to} end={index === 0} to={to}>{label}</NavLink>
-            )}
-          </div>
-        </nav>
-        <button className="admin-elegant-logout" type="button" onClick={logout}>Выйти</button>
+      <div className="admin-elegant-intro">
+        <h1 className="admin-elegant-title">Кабинет администратора</h1>
+        <div className="admin-elegant-toolbar">
+          <nav className="admin-elegant-nav" aria-label="Разделы кабинета">
+            <div>
+              {navItems.map(([label, to], index) =>
+                <NavLink key={to} end={index === 0} to={to}>{label}</NavLink>
+              )}
+            </div>
+          </nav>
+          <button className="admin-elegant-logout" type="button" onClick={logout}>Выйти</button>
+        </div>
       </div>
 
       <main className="admin-elegant-workspace"><Outlet /></main>
