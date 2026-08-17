@@ -64,11 +64,6 @@ export function CompetitionsPage() {
         </p>
       </section>
       <section className="public-section competitions-section">
-        <div className="competitions-page-actions">
-          <Link className="application-status-link prominent" to="/proverit-zayavku">
-            Проверить статус заявки
-          </Link>
-        </div>
         {loading && <p className="competitions-message">Загружаем конкурсы…</p>}
         {error && <p className="competitions-message">{error}</p>}
         {!loading && !error && !allItems.length && (
