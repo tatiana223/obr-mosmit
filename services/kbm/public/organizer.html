@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Организатор — Красота Божьего мира</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css?v=20260813-clarify" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <h1 class="brand">Кабинет организатора</h1>
+        <p>Настройка формы, проставление мест участникам и общая таблица заявок.</p>
+        <div class="nav-links">
+          <a class="btn btn-secondary" href="/" target="_blank" rel="noopener noreferrer">Форма благочинного</a>
+        </div>
+        <nav class="organizer-tabs" aria-label="Разделы организатора">
+          <button type="button" class="chip chip-btn is-active" data-tab="settings">Настройки</button>
+          <button type="button" class="chip chip-btn" data-tab="winners">Участники</button>
+          <button type="button" class="chip chip-btn" data-tab="table">Таблица</button>
+        </nav>
+      </section>
+
+      <section class="panel organizer-panel" data-panel="settings">
+        <h2>Настройки конкурса</h2>
+        <p class="lead">Изменения сразу отображаются на форме благочинного.</p>
+        <form id="settingsForm" class="grid two">
+          <label>
+            Название (бренд)
+            <input name="brand" required />
+          </label>
+          <label>
+            Номер конкурса
+            <input name="contestNumber" placeholder="XXII" required />
+          </label>
+          <label>
+            Год конкурса
+            <input name="contestYear" placeholder="2026" required />
+          </label>
+          <label class="full">
+            Описание под заголовком
+            <textarea name="subtitle" rows="3" required></textarea>
+          </label>
+          <label class="full">
+            Пилюли (каждая с новой строки)
+            <textarea name="chips" rows="4" required></textarea>
+          </label>
+          <label>
+            Текст кнопки адреса
+            <input name="addressButtonLabel" required />
+          </label>
+          <label>
+            Телефон в оверлее
+            <input name="addressPhone" required />
+          </label>
+          <label class="full">
+            Адрес в оверлее
+            <textarea name="addressText" rows="2" required></textarea>
+          </label>
+          <div class="actions full">
+            <button type="submit" class="btn btn-primary">Сохранить настройки</button>
+          </div>
+        </form>
+        <div class="status" id="settingsStatus" role="status"></div>
+      </section>
+
+      <section class="panel organizer-panel" data-panel="winners" hidden>
+        <div class="admin-toolbar">
+          <div>
+            <h2>Участники</h2>
+          </div>
+        </div>
+        <div class="status" id="winnersStatus" role="status"></div>
+        <div id="winnersBlocks" class="organizer-deanery-blocks"></div>
+      </section>
+
+      <section class="panel organizer-panel" data-panel="table" hidden>
+        <div class="admin-toolbar">
+          <div>
+            <h2>Таблица участников</h2>
+            <p class="lead" style="margin-bottom: 0">
+              Сейчас в заявке: <strong id="countLabel">0</strong>
+            </p>
+          </div>
+          <div class="nav-links" style="margin: 0">
+            <button type="button" class="btn btn-ghost" id="refreshTableBtn">Обновить</button>
+            <a class="btn btn-primary" href="/api/export.csv?group=deanery" id="downloadByDeaneryBtn">
+              Скачать по благочиниям
+            </a>
+            <a class="btn btn-primary" href="/api/export.csv?group=nomination" id="downloadByNominationBtn">
+              Скачать по номинациям
+            </a>
+          </div>
+        </div>
+        <div class="table-view-tabs" role="tablist" aria-label="Вид таблицы">
+          <button type="button" class="chip chip-btn is-active" data-table-view="deanery">
+            По благочиниям
+          </button>
+          <button type="button" class="chip chip-btn" data-table-view="nomination">
+            По номинациям
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>№</th>
+                <th>Епархия</th>
+                <th>Благочиние</th>
+                <th>Фамилия</th>
+                <th>Имя</th>
+                <th>Возраст</th>
+                <th>Название рисунка</th>
+                <th>Адрес</th>
+                <th>Номинация</th>
+                <th>Место</th>
+                <th>Учреждение</th>
+                <th>Педагог</th>
+                <th>Тел. педагога</th>
+                <th>Представитель</th>
+              </tr>
+            </thead>
+            <tbody id="participantsBody">
+              <tr>
+                <td colspan="14">Пока нет участников.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="status" id="tableStatus" role="status"></div>
+      </section>
+    </main>
+
+    <div class="overlay" id="noticeOverlay" aria-hidden="true">
+      <div
+        class="overlay-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="noticeTitle"
+        style="max-width: 420px"
+      >
+        <div class="overlay-head">
+          <div>
+            <h2 id="noticeTitle">Уведомление</h2>
+            <p class="lead" id="noticeLead" style="margin-bottom: 0"></p>
+          </div>
+          <button type="button" class="close-btn" id="closeNoticeBtn" aria-label="Закрыть">
+            ×
+          </button>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="closeNoticeActionBtn">Понятно</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/js/organizer.js?v=20260813-clarify"></script>
+  </body>
+</html>

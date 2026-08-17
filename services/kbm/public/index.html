@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Заявка участника — Красота Божьего мира 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css?v=20260813-clarify" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <h1 class="brand" id="heroBrand">Красота Божьего мира</h1>
+        <p id="heroSubtitle">
+          XXII Международный конкурс детского творчества «Красота Божьего мира: народы единой
+          России». Заполните данные участника — они появятся в общей таблице заявки.
+        </p>
+        <div class="chips" id="heroChips">
+          <span class="chip">Возраст 9–17 лет</span>
+          <span class="chip">Год конкурса: 2026</span>
+          <span class="chip">Сдача рисунков и документов до 12 октября</span>
+          <button type="button" class="chip chip-btn" id="addressChipBtn">
+            Адрес приема документов
+          </button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Выберите епархию и благочиние</h2>
+
+        <form id="preForm" class="grid two">
+          <label>
+            Епархия
+            <select id="diocese" name="diocese" required>
+              <option value="">Выберите епархию</option>
+            </select>
+          </label>
+          <label>
+            Благочиние
+            <select id="deanery" name="deanery" required>
+              <option value="">Выберите благочиние</option>
+              <option>Бронницкое 1</option>
+              <option>Бронницкое 2</option>
+              <option>Воскресенское 1</option>
+              <option>Воскресенское 2</option>
+              <option>Егорьевское 1</option>
+              <option>Егорьевское 2</option>
+              <option>Жуковское</option>
+              <option>Зарайское 1</option>
+              <option>Зарайское 2</option>
+              <option>Каширское</option>
+              <option>Коломенское 1</option>
+              <option>Коломенское 2</option>
+              <option>Коломенское 3</option>
+              <option>Луховицкое 1</option>
+              <option>Луховицкое 2</option>
+              <option>Монастырское</option>
+              <option>Озерское</option>
+              <option>Раменское</option>
+              <option>Серебряно-Прудское</option>
+            </select>
+          </label>
+        </form>
+
+        <div id="deaneryParticipants" class="deanery-participants" hidden>
+          <h3 id="deaneryParticipantsTitle">Заявленные участники</h3>
+          <ul id="deaneryParticipantsList"></ul>
+        </div>
+
+        <div class="actions actions-stack">
+          <button type="button" class="btn btn-primary" id="openOverlayBtn">
+            Добавить участника
+          </button>
+        </div>
+
+        <div class="quota-box" id="quotaBox">
+          <div class="quota-head">
+            <h3>Минимум работ по благочинию</h3>
+            <p class="quota-note" id="quotaNote"></p>
+          </div>
+          <ul id="quotaList" class="quota-list">
+            <li data-quota="icon" class="is-low">
+              <div class="quota-top">
+                <span class="quota-name">Православная икона</span>
+                <span class="quota-count"><b data-count>0</b>/<span data-min>1</span></span>
+              </div>
+              <div class="quota-bar" aria-hidden="true"><span data-bar></span></div>
+            </li>
+            <li data-quota="porcelain" class="is-low">
+              <div class="quota-top">
+                <span class="quota-name">Роспись по фарфору</span>
+                <span class="quota-count"><b data-count>0</b>/<span data-min>3</span></span>
+              </div>
+              <div class="quota-bar" aria-hidden="true"><span data-bar></span></div>
+            </li>
+            <li data-quota="main-young" class="is-low">
+              <div class="quota-top">
+                <span class="quota-name">Основная тематика 9–12</span>
+                <span class="quota-count"><b data-count>0</b>/<span data-min>10</span></span>
+              </div>
+              <div class="quota-bar" aria-hidden="true"><span data-bar></span></div>
+            </li>
+            <li data-quota="main-old" class="is-low">
+              <div class="quota-top">
+                <span class="quota-name">Основная тематика 13–17</span>
+                <span class="quota-count"><b data-count>0</b>/<span data-min>10</span></span>
+              </div>
+              <div class="quota-bar" aria-hidden="true"><span data-bar></span></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="actions actions-stack">
+          <button type="button" class="btn btn-secondary" id="downloadCsvBtn" hidden>
+            Скачать форму CSV
+          </button>
+          <div class="submit-review-row">
+            <button type="button" class="btn btn-secondary" id="submitReviewBtn">
+              Отправить данные на проверку
+            </button>
+            <p class="data-sent-banner" id="dataSentBanner" hidden>
+              Данные отправлены. Ожидайте ответ
+            </p>
+            <p class="works-rejected-banner" id="worksRejectedBanner" hidden>
+              Заявка отклонена. Свяжитесь с ответственным лицом
+            </p>
+            <p class="works-clarification-banner" id="worksClarificationBanner" hidden>
+              Требуется уточнение информации по участникам. Свяжитесь с организатором
+            </p>
+            <p class="works-accepted-banner" id="worksAcceptedBanner" hidden>
+              Работы приняты. Можете загрузить сертификаты
+            </p>
+          </div>
+          <div class="certificate-access-row">
+            <button type="button" class="btn btn-primary cert-access-btn is-muted" id="getCertificateBtn" disabled>
+              Получить сертификат участника
+            </button>
+            <p class="cert-access-note" id="certAccessNote" hidden>
+              Доступ к скачиванию сертификата участника появится после одобрения заявки
+            </p>
+          </div>
+        </div>
+        <p class="hint" id="preHint"></p>
+        <div class="status" id="formStatus" role="status"></div>
+      </section>
+    </main>
+
+    <div class="overlay" id="overlay" aria-hidden="true">
+      <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="overlayTitle">
+        <div class="overlay-head">
+          <div>
+            <h2 id="overlayTitle">Данные по работе</h2>
+            <p class="lead" id="overlayLead">Участник №1</p>
+          </div>
+        </div>
+
+        <form id="workForm">
+          <div class="grid two">
+            <label>
+              Год рождения участника
+              <select id="birthYear" name="birthYear" required>
+                <option value="">Выберите год</option>
+              </select>
+            </label>
+            <div class="field-spacer" aria-hidden="true"></div>
+            <label>
+              Фамилия
+              <div class="suggest-wrap">
+                <input id="lastName" name="lastName" autocomplete="off" required />
+                <ul id="lastNameSuggest" class="suggest-list" hidden></ul>
+              </div>
+            </label>
+            <label>
+              Имя
+              <div class="suggest-wrap">
+                <input id="firstName" name="firstName" autocomplete="off" required />
+                <ul id="firstNameSuggest" class="suggest-list" hidden></ul>
+              </div>
+            </label>
+            <label>
+              Название работы
+              <input id="workTitle" name="workTitle" autocomplete="off" required />
+            </label>
+            <label>
+              Номинация
+              <select id="nomination" name="nomination" required>
+                <option value="">Выберите номинацию</option>
+                <option value="«Основная тематика»">«Основная тематика»</option>
+                <option value="«Православная икона»" data-min-age="13">«Православная икона»</option>
+                <option value="«Роспись по фарфору»" data-min-age="13">«Роспись по фарфору»</option>
+              </select>
+            </label>
+            <div class="address-block full">
+              <label>
+                Федеральный округ
+                <select name="federalDistrict" required>
+                  <option value="">Выберите округ</option>
+                  <option selected>Центральный федеральный округ</option>
+                  <option>Северо-Западный федеральный округ</option>
+                  <option>Южный федеральный округ</option>
+                  <option>Северо-Кавказский федеральный округ</option>
+                  <option>Приволжский федеральный округ</option>
+                  <option>Уральский федеральный округ</option>
+                  <option>Сибирский федеральный округ</option>
+                  <option>Дальневосточный федеральный округ</option>
+                </select>
+              </label>
+              <label>
+                Название субъекта РФ (республика, область)
+                <input name="rfSubject" value="Московская область" required />
+              </label>
+              <label>
+                Муниципальное образование
+                <input name="municipalFormation" required />
+              </label>
+              <label>
+                Город (село, деревня)
+                <input name="locality" required />
+              </label>
+            </div>
+            <label>
+              <span class="field-title">Тип учреждения</span>
+              <select id="institutionType" name="institutionType" required>
+                <option value="">Выберите тип</option>
+                <option>Воскресная школа</option>
+                <option>Учреждение культуры</option>
+                <option>Образовательная организация</option>
+                <option>Самостоятельное участие</option>
+              </select>
+            </label>
+            <label class="institution-name-field">
+              <span id="institutionNameLabel" class="field-title">Название учреждения</span>
+              <div class="suggest-wrap">
+                <input
+                  id="institutionName"
+                  name="institutionName"
+                  autocomplete="off"
+                  placeholder="Сначала выберите тип учреждения"
+                  disabled
+                />
+                <ul id="institutionSuggest" class="suggest-list" hidden></ul>
+              </div>
+              <span id="institutionNameNote" class="field-note is-hidden">
+                Выберите наименование из ЕГРЮЛ — в таблицу попадёт как «Воскресная школа …».
+              </span>
+            </label>
+            <label>
+              ФИО педагога
+              <div class="suggest-wrap">
+                <input id="teacherName" name="teacherName" autocomplete="off" required />
+                <ul id="teacherNameSuggest" class="suggest-list" hidden></ul>
+              </div>
+            </label>
+            <label>
+              Телефон педагога
+              <div class="suggest-wrap">
+                <input
+                  id="teacherPhone"
+                  name="teacherPhone"
+                  type="tel"
+                  inputmode="numeric"
+                  placeholder="+7(___)___-__-__"
+                  autocomplete="off"
+                  required
+                />
+                <ul id="teacherPhoneSuggest" class="suggest-list" hidden></ul>
+              </div>
+            </label>
+            <label>
+              ФИО представителя ребёнка
+              <div class="suggest-wrap">
+                <input
+                  id="representativeName"
+                  name="representativeName"
+                  autocomplete="off"
+                  required
+                />
+                <ul id="representativeNameSuggest" class="suggest-list" hidden></ul>
+              </div>
+            </label>
+            <label>
+              Телефон представителя
+              <div class="suggest-wrap">
+                <input
+                  id="representativePhone"
+                  name="representativePhone"
+                  type="tel"
+                  inputmode="numeric"
+                  placeholder="+7(___)___-__-__"
+                  autocomplete="off"
+                  required
+                />
+                <ul id="representativePhoneSuggest" class="suggest-list" hidden></ul>
+              </div>
+            </label>
+          </div>
+
+          <div class="checkboxes" style="margin-top: 1.1rem">
+            <label>
+              <input type="checkbox" name="rightsConsent" required />
+              <span>
+                Подтверждаю направление согласия о передаче прав на работу (соглашение законного
+                представителя о передаче исключительных авторских прав)
+              </span>
+            </label>
+            <label>
+              <input type="checkbox" name="personalDataConsent" required />
+              <span>Подтверждаю направление согласия на обработку персональных данных</span>
+            </label>
+            <label>
+              <input type="checkbox" name="idDocumentConfirm" required />
+              <span>
+                Подтверждаю направление документа, удостоверяющего личность ребёнка (копия
+                паспорта или свидетельства о рождении)
+              </span>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary" id="saveParticipantBtn">
+              Сохранить участника
+            </button>
+            <button type="button" class="btn btn-ghost" id="cancelOverlayBtn">Отмена</button>
+          </div>
+        </form>
+
+        <div class="done-card" id="doneCard">
+          <h3>Участник сохранён</h3>
+          <p class="lead" id="doneText">Данные добавлены в таблицу заявки.</p>
+          <div class="actions" style="justify-content: center">
+            <button type="button" class="btn btn-primary" id="nextParticipantBtn">
+              Заполнить на следующего
+            </button>
+            <a class="btn btn-secondary" href="/zayavka">Смотреть таблицу</a>
+            <button type="button" class="btn btn-ghost" id="finishBtn">Готово</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="confirmOverlay" aria-hidden="true">
+      <div
+        class="overlay-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmTitle"
+        style="max-width: 480px"
+      >
+        <div class="overlay-head">
+          <div>
+            <h2 id="confirmTitle">Подтверждение</h2>
+            <p class="lead" id="confirmLead" style="margin-bottom: 0"></p>
+          </div>
+          <button type="button" class="close-btn" id="confirmCancelBtn" aria-label="Закрыть">
+            ×
+          </button>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="confirmOkBtn">Сменить</button>
+          <button type="button" class="btn btn-ghost" id="confirmCancelActionBtn">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="noticeOverlay" aria-hidden="true">
+      <div
+        class="overlay-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="noticeTitle"
+        style="max-width: 420px"
+      >
+        <div class="overlay-head">
+          <div>
+            <h2 id="noticeTitle">Внимание</h2>
+            <p class="lead" id="noticeLead" style="margin-bottom: 0"></p>
+          </div>
+          <button type="button" class="close-btn" id="closeNoticeBtn" aria-label="Закрыть">
+            ×
+          </button>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="closeNoticeActionBtn">Понятно</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="addressOverlay" aria-hidden="true">
+      <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="addressTitle">
+        <div class="overlay-head">
+          <div>
+            <h2 id="addressTitle">Адрес приема документов:</h2>
+            <p class="lead" style="margin-bottom: 0">
+              <span id="addressText">г. Воскресенск, ул. Первомайская, д. 29 (Сергиевский храм г. Воскресенск)</span><br />
+              тел.:
+              <a id="addressPhoneLink" href="tel:+79099102398">+7(909)910-23-98</a>
+            </p>
+          </div>
+          <button type="button" class="close-btn" id="closeAddressBtn" aria-label="Закрыть">
+            ×
+          </button>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="closeAddressActionBtn">Закрыть</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="responsibleOverlay" aria-hidden="true">
+      <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="responsibleTitle">
+        <div class="overlay-head">
+          <div>
+            <h2 id="responsibleTitle">Ответственное лицо</h2>
+            <p class="lead">
+              Заполните данные на лицо, ответственное за заполнение заявки. Без этих сведений
+              отправка на проверку невозможна.
+            </p>
+          </div>
+          <button type="button" class="close-btn" id="closeResponsibleBtn" aria-label="Закрыть">
+            ×
+          </button>
+        </div>
+
+        <form id="responsibleForm">
+          <div class="grid two">
+            <label>
+              Сан, фамилия, имя, отчество
+              <input id="responsibleFullName" name="fullName" required autocomplete="name" />
+            </label>
+            <label>
+              Телефон
+              <input
+                id="responsiblePhone"
+                name="phone"
+                type="tel"
+                inputmode="numeric"
+                placeholder="+7(___)___-__-__"
+                required
+              />
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Отправить на проверку</button>
+            <button type="button" class="btn btn-ghost" id="cancelResponsibleBtn">Отмена</button>
+          </div>
+          <div class="status" id="responsibleStatus" role="status"></div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="/js/form.js?v=20260813-clarify"></script>
+  </body>
+</html>

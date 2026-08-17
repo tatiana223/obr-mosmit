@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Таблица заявки — Красота Божьего мира 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <h1 class="brand">Красота Божьего мира</h1>
+        <p>
+          ЗАЯВКА на участие в Международном конкурсе детского творчества «Красота Божьего мира:
+          народы единой России», посвящённого Году единства народов России.
+        </p>
+        <div class="nav-links">
+          <a class="btn btn-secondary" href="/">Форма участника</a>
+          <a class="btn btn-primary" href="/api/export.csv">Скачать CSV</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Данные на лицо, ответственное за заполнение заявки</h2>
+        <form id="metaForm" class="meta-grid">
+          <div class="grid">
+            <label>
+              Сан, фамилия, имя, отчество
+              <input name="fullName" />
+            </label>
+            <label>
+              Телефон
+              <input name="phone" type="tel" />
+            </label>
+          </div>
+          <div class="actions" style="grid-column: 1 / -1">
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+          </div>
+        </form>
+        <div class="status" id="metaStatus" role="status"></div>
+      </section>
+
+      <section class="panel">
+        <div class="admin-toolbar">
+          <div>
+            <h2>Таблица участников</h2>
+            <p class="lead" style="margin-bottom: 0">
+              Сюда поступают данные из веб-формы. Сейчас в заявке:
+              <strong id="countLabel">0</strong>
+            </p>
+          </div>
+          <button type="button" class="btn btn-ghost" id="refreshBtn">Обновить</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>№</th>
+                <th>Епархия</th>
+                <th>Благочиние</th>
+                <th>Фамилия</th>
+                <th>Имя</th>
+                <th>Возраст 9–17</th>
+                <th>Название рисунка</th>
+                <th>Адрес (округ, субъект, МО, населённый пункт)</th>
+                <th>Номинация</th>
+                <th>Название учреждения (полностью)</th>
+                <th>Педагог (Ф.И.О. полностью)</th>
+                <th>Телефон преподавателя</th>
+                <th>Телефон родителя (Ф.И.О. родителя)</th>
+                <th>Согласие о передаче прав на работу</th>
+                <th>Согласие на обработку перс. данных</th>
+                <th>Документ, удостоверяющий личность ребёнка</th>
+                <th>Ответственное лицо (сан, Ф.И.О.)</th>
+                <th>Телефон ответственного</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="participantsBody">
+              <tr>
+                <td colspan="19">Пока нет участников. Заполните форму.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/js/admin.js"></script>
+  </body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Выбор участников — сертификаты</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <h1 class="brand">Красота Божьего мира</h1>
+        <p id="pageLead">Выберите участников для формирования сертификатов.</p>
+        <div class="nav-links">
+          <a class="btn btn-secondary" href="/">Назад к форме</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="admin-toolbar participants-header">
+          <div class="participants-header-main">
+            <h2>Участники заявки</h2>
+          </div>
+          <label class="select-all" for="selectAll">Выбрать всех</label>
+          <input type="checkbox" id="selectAll" class="participants-check" />
+        </div>
+
+        <ul id="participantChecklist" class="participant-checklist"></ul>
+
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="buildCertificatesBtn" disabled>
+            Сформировать сертификат
+          </button>
+        </div>
+        <div class="status" id="pageStatus" role="status"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/js/certificates.js"></script>
+  </body>
+</html>

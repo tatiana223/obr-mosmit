@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Сертификаты — предпросмотр</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/certificates.css" />
+  </head>
+  <body>
+    <main class="shell no-print">
+      <section class="hero">
+        <h1 class="brand">Красота Божьего мира</h1>
+        <p id="previewLead">Сформированные сертификаты</p>
+        <div class="nav-links">
+          <a class="btn btn-secondary" id="backToSelect" href="/certificates.html">К выбору</a>
+          <button type="button" class="btn btn-primary" id="printBtn">Печать</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div id="certificateGrid" class="certificate-grid"></div>
+        <div class="status" id="previewStatus" role="status"></div>
+      </section>
+    </main>
+
+    <div id="printRoot" class="print-root" aria-hidden="true"></div>
+
+    <div class="overlay" id="previewOverlay" aria-hidden="true">
+      <div class="overlay-card certificate-overlay-card" role="dialog" aria-modal="true">
+        <div class="overlay-head">
+          <h2 id="previewTitle">Предпросмотр</h2>
+          <button type="button" class="close-btn" id="closePreviewBtn" aria-label="Закрыть">×</button>
+        </div>
+        <div id="previewStage" class="certificate-stage"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/js/certificates-preview.js"></script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+[Unit]
+Description=KBM contest forms (kbm.eorok.ru)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/kbm-contest
+EnvironmentFile=/var/www/kbm-contest/deploy/kbm-contest.env
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+# Данные только у пользователя сервиса
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
