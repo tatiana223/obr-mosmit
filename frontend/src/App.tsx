@@ -18,6 +18,7 @@ import { CompetitionApplicationPage } from './pages/public/CompetitionApplicatio
 import { ApplicationStatusPage } from './pages/public/ApplicationStatusPage';
 import { CabinetPage } from './pages/CabinetPage';
 import { AdminCompetitionsPage } from './pages/AdminCompetitionsPage';
+import { AdminKbmOrganizerPage } from './pages/AdminKbmOrganizerPage';
 import { AdminSchoolsPage } from './pages/AdminSchoolsPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminCoursesPage } from './pages/AdminCoursesPage';
@@ -56,6 +57,7 @@ export default function App() {
       <Route path="documents/:id" element={<DocumentEditorPage />}/>
       <Route path="schools" element={<AdminSchoolsPage />}/>
       <Route path="competitions" element={<AdminCompetitionsPage />}/>
+      <Route path="competitions/krasota-bozhego-mira" element={<AdminKbmOrganizerPage />}/>
       <Route path="courses" element={<AdminCoursesPage />}/>
       <Route path="users" element={<AdminUsersPage />}/>
       <Route path="contacts" element={<AdminContactsPage />}/>
