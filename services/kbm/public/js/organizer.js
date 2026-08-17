@@ -12,6 +12,10 @@ const settingsForm = document.getElementById('settingsForm');
 const settingsStatus = document.getElementById('settingsStatus');
 const winnersBlocks = document.getElementById('winnersBlocks');
 const winnersStatus = document.getElementById('winnersStatus');
+const accessCodesBody = document.getElementById('accessCodesBody');
+const accessStatus = document.getElementById('accessStatus');
+const generateAllAccessBtn = document.getElementById('generateAllAccessBtn');
+const copyAllAccessBtn = document.getElementById('copyAllAccessBtn');
 const participantsBody = document.getElementById('participantsBody');
 const countLabel = document.getElementById('countLabel');
 const refreshTableBtn = document.getElementById('refreshTableBtn');
@@ -23,6 +27,7 @@ const closeNoticeActionBtn = document.getElementById('closeNoticeActionBtn');
 
 let participants = [];
 let submissionsByDeanery = {};
+let accessItems = [];
 let tableViewMode = 'deanery';
 let dirtyDeaneries = new Set();
 
@@ -76,7 +81,7 @@ function escapeHtml(value) {
 }
 
 function setTab(tab) {
-  const next = ['settings', 'winners', 'table'].includes(tab) ? tab : 'settings';
+  const next = ['settings', 'access', 'winners', 'table'].includes(tab) ? tab : 'settings';
   tabButtons.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.tab === next));
   panels.forEach((panel) => {
     panel.hidden = panel.dataset.panel !== next;
@@ -87,6 +92,94 @@ function setTab(tab) {
   if (next === 'winners' || next === 'table') {
     loadParticipants().catch((error) => showStatus(tableStatus, error.message, true));
   }
+  if (next === 'access') {
+    loadAccessCodes().catch((error) => showStatus(accessStatus, error.message, true));
+  }
+}
+
+function formatAccessDate(value) {
+  if (!value) return '—';
+  try {
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
+
+function renderAccessCodes() {
+  if (!accessCodesBody) return;
+  if (!accessItems.length) {
+    accessCodesBody.innerHTML = '<tr><td colspan="4">Список благочиний пуст.</td></tr>';
+    return;
+  }
+  accessCodesBody.innerHTML = accessItems
+    .map((item) => {
+      const code = item.code || '—';
+      const codeCell = item.hasCode
+        ? `<code class="access-code">${escapeHtml(code)}</code>`
+        : '<span class="muted">не создан</span>';
+      return `<tr data-deanery="${escapeHtml(item.deanery)}">
+        <td><b>${escapeHtml(item.deanery)}</b></td>
+        <td>${codeCell}</td>
+        <td>${escapeHtml(formatAccessDate(item.updatedAt))}</td>
+        <td class="row-actions">
+          <button type="button" class="btn btn-ghost" data-generate-access="${escapeHtml(item.deanery)}">
+            ${item.hasCode ? 'Обновить' : 'Сгенерировать'}
+          </button>
+          <button type="button" class="btn btn-ghost" data-copy-access="${escapeHtml(item.deanery)}" ${
+            item.hasCode ? '' : 'disabled'
+          }>
+            Копировать
+          </button>
+          <a class="btn btn-ghost" href="mailto:?subject=${encodeURIComponent(
+            `Код доступа — ${item.deanery}`
+          )}&body=${encodeURIComponent(
+            item.hasCode
+              ? `Здравствуйте!\n\nКод доступа к форме заявки благочиния «${item.deanery}»:\n${item.code}\n\nОткройте форму и выберите это благочиние — система запросит код.\n`
+              : ''
+          )}" ${item.hasCode ? '' : 'aria-disabled="true" tabindex="-1" style="pointer-events:none;opacity:.45"'}>
+            Написать
+          </a>
+        </td>
+      </tr>`;
+    })
+    .join('');
+}
+
+async function loadAccessCodes() {
+  const response = await fetch('/api/organizer/deanery-access');
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Не удалось загрузить коды доступа');
+  accessItems = Array.isArray(data.items) ? data.items : [];
+  renderAccessCodes();
+}
+
+async function copyText(text) {
+  const value = String(text || '');
+  if (!value) throw new Error('Нечего копировать');
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const area = document.createElement('textarea');
+  area.value = value;
+  document.body.appendChild(area);
+  area.select();
+  document.execCommand('copy');
+  area.remove();
+}
+
+function buildAllCodesText(items = accessItems) {
+  return items
+    .filter((item) => item.hasCode && item.code)
+    .map((item) => `${item.deanery}: ${item.code}`)
+    .join('\n');
 }
 
 function fillSettingsForm(settings) {
@@ -560,6 +653,112 @@ refreshTableBtn?.addEventListener('click', async () => {
   }
 });
 
+generateAllAccessBtn?.addEventListener('click', async () => {
+  if (
+    !confirm(
+      'Сгенерировать новые коды для всех благочиний? Старые коды перестанут действовать.'
+    )
+  ) {
+    return;
+  }
+  generateAllAccessBtn.disabled = true;
+  try {
+    const response = await fetch('/api/organizer/deanery-access/generate-all', { method: 'POST' });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Не удалось сгенерировать коды');
+    accessItems = Array.isArray(data.items)
+      ? data.items.map((item) => ({
+          deanery: item.deanery,
+          hasCode: Boolean(item.code),
+          code: item.code || '',
+          updatedAt: item.updatedAt || null,
+          generatedAt: item.generatedAt || null,
+        }))
+      : [];
+    renderAccessCodes();
+    showStatus(accessStatus, `Сгенерированы коды для ${accessItems.length} благочиний.`);
+  } catch (error) {
+    showStatus(accessStatus, error.message, true);
+  } finally {
+    generateAllAccessBtn.disabled = false;
+  }
+});
+
+copyAllAccessBtn?.addEventListener('click', async () => {
+  try {
+    const text = buildAllCodesText();
+    if (!text) throw new Error('Сначала сгенерируйте коды.');
+    await copyText(text);
+    showStatus(accessStatus, 'Все коды скопированы в буфер обмена.');
+  } catch (error) {
+    showStatus(accessStatus, error.message, true);
+  }
+});
+
+accessCodesBody?.addEventListener('click', async (event) => {
+  const generateBtn = event.target.closest('[data-generate-access]');
+  if (generateBtn) {
+    const deanery = generateBtn.dataset.generateAccess;
+    if (!deanery) return;
+    if (
+      generateBtn.textContent.includes('Обновить') &&
+      !confirm(`Обновить код для «${deanery}»? Старый код перестанет действовать.`)
+    ) {
+      return;
+    }
+    generateBtn.disabled = true;
+    try {
+      const response = await fetch('/api/organizer/deanery-access/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deanery }),
+      });
+      const item = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(item.error || 'Не удалось сгенерировать код');
+      accessItems = accessItems.map((row) =>
+        row.deanery === deanery
+          ? {
+              deanery,
+              hasCode: true,
+              code: item.code || '',
+              updatedAt: item.updatedAt || null,
+              generatedAt: item.generatedAt || null,
+            }
+          : row
+      );
+      if (!accessItems.some((row) => row.deanery === deanery)) {
+        accessItems.push({
+          deanery,
+          hasCode: true,
+          code: item.code || '',
+          updatedAt: item.updatedAt || null,
+          generatedAt: item.generatedAt || null,
+        });
+      }
+      renderAccessCodes();
+      showStatus(accessStatus, `Код для «${deanery}»: ${item.code}`);
+    } catch (error) {
+      showStatus(accessStatus, error.message, true);
+    } finally {
+      generateBtn.disabled = false;
+    }
+    return;
+  }
+
+  const copyBtn = event.target.closest('[data-copy-access]');
+  if (copyBtn) {
+    const deanery = copyBtn.dataset.copyAccess;
+    const item = accessItems.find((row) => row.deanery === deanery);
+    try {
+      if (!item?.code) throw new Error('Сначала сгенерируйте код.');
+      await copyText(`${item.deanery}: ${item.code}`);
+      showStatus(accessStatus, `Код «${deanery}» скопирован.`);
+    } catch (error) {
+      showStatus(accessStatus, error.message, true);
+    }
+  }
+});
+
 document.querySelectorAll('[data-table-view]').forEach((btn) => {
   btn.addEventListener('click', () => {
     const next = btn.dataset.tableView === 'nomination' ? 'nomination' : 'deanery';
@@ -585,4 +784,7 @@ setTab(initialTab);
 loadSettings().catch((error) => showStatus(settingsStatus, error.message, true));
 if (initialTab === 'winners' || initialTab === 'table') {
   loadParticipants().catch((error) => showStatus(tableStatus, error.message, true));
+}
+if (initialTab === 'access') {
+  loadAccessCodes().catch((error) => showStatus(accessStatus, error.message, true));
 }

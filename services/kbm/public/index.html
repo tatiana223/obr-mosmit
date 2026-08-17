@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260813-clarify" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260817-access" />
     <link rel="stylesheet" href="/css/site-header.css?v=20260817-header" />
   </head>
   <body>
@@ -84,25 +84,6 @@
             Благочиние
             <select id="deanery" name="deanery" required>
               <option value="">Выберите благочиние</option>
-              <option>Бронницкое 1</option>
-              <option>Бронницкое 2</option>
-              <option>Воскресенское 1</option>
-              <option>Воскресенское 2</option>
-              <option>Егорьевское 1</option>
-              <option>Егорьевское 2</option>
-              <option>Жуковское</option>
-              <option>Зарайское 1</option>
-              <option>Зарайское 2</option>
-              <option>Каширское</option>
-              <option>Коломенское 1</option>
-              <option>Коломенское 2</option>
-              <option>Коломенское 3</option>
-              <option>Луховицкое 1</option>
-              <option>Луховицкое 2</option>
-              <option>Монастырское</option>
-              <option>Озерское</option>
-              <option>Раменское</option>
-              <option>Серебряно-Прудское</option>
             </select>
           </label>
         </form>
@@ -451,6 +432,49 @@
       </div>
     </div>
 
+    <div class="overlay" id="deaneryAccessOverlay" aria-hidden="true">
+      <div
+        class="overlay-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deaneryAccessTitle"
+        style="max-width: 460px"
+      >
+        <div class="overlay-head">
+          <div>
+            <h2 id="deaneryAccessTitle">Код доступа</h2>
+            <p class="lead" id="deaneryAccessLead" style="margin-bottom: 0">
+              Введите код, полученный от организатора конкурса.
+            </p>
+          </div>
+          <button type="button" class="close-btn" id="closeDeaneryAccessBtn" aria-label="Закрыть">
+            ×
+          </button>
+        </div>
+        <form id="deaneryAccessForm">
+          <label>
+            Код доступа
+            <input
+              id="deaneryAccessCode"
+              name="code"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              required
+              placeholder="Например, AB12CD34"
+            />
+          </label>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Подтвердить</button>
+            <button type="button" class="btn btn-ghost" id="cancelDeaneryAccessBtn">Отмена</button>
+          </div>
+          <div class="status" id="deaneryAccessStatus" role="status"></div>
+        </form>
+      </div>
+    </div>
+
     <div class="overlay" id="responsibleOverlay" aria-hidden="true">
       <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="responsibleTitle">
         <div class="overlay-head">
@@ -494,6 +518,6 @@
     </div>
 
     <script src="/js/site-header.js?v=20260817-header"></script>
-    <script type="module" src="/js/form.js?v=20260813-clarify"></script>
+    <script type="module" src="/js/form.js?v=20260817-access"></script>
   </body>
 </html>
