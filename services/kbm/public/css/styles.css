@@ -1419,12 +1419,12 @@ td.yes {
 }
 
 .table-wrap--access {
-  width: fit-content;
-  max-width: min(100%, 44rem);
+  width: 100%;
+  max-width: none;
 }
 
 .access-codes-table {
-  width: auto;
+  width: 100%;
   min-width: 0;
   table-layout: auto;
 }
