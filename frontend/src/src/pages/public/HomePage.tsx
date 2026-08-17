@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { usePublicNews } from '../../api/publicNewsApi';
 const quickLinks = [
-    ['/icon-book.svg', 'Образовательные организации', '/pravoslavnye-shkoly'],
+    ['/icon-book.svg', 'Православные школы', '/pravoslavnye-shkoly'],
     ['/icon-graduation-cap.svg', 'Курсы', '/kursy'],
     ['/icon-people.svg', 'Конкурсы', '/konkursy'],
     ['/icon-document.svg', 'Документы', '/dokumenty'],
@@ -23,12 +23,6 @@ export function HomePage() {
     </section>
 
     <section className="official-lower">
-      <nav className="quick-links" aria-label="Основные разделы">
-        {quickLinks.map(([icon, title, url]) => <Link to={url} key={url}>
-          <i><img src={icon} alt=""/></i><span>{title}</span><b>›</b>
-        </Link>)}
-      </nav>
-
       <div className="latest-news">
         <div className="section-heading"><h2>Последние новости</h2><Link to="/novosti">Все новости&nbsp; →</Link></div>
         <div className="news-card-grid">
@@ -38,6 +32,11 @@ export function HomePage() {
           </Link>)}
         </div>
       </div>
+      <nav className="quick-links" aria-label="Основные разделы">
+        {quickLinks.map(([icon, title, url]) => <Link to={url} key={url}>
+          <i><img src={icon} alt=""/></i><span>{title}</span><b>›</b>
+        </Link>)}
+      </nav>
     </section>
   </main>;
 }

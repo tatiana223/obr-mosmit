@@ -39,7 +39,7 @@ export function SchoolsPage() {
     }), [schools, query, location]);
     const pageItems = filtered.slice((page - 1) * pageSize, page * pageSize);
     return <main>
-    <section className="page-hero"><span className="eyebrow">Образовательные организации</span><h1>Образовательные организации</h1><p>Православные гимназии и школы Московской области.</p></section>
+    <section className="page-hero"><span className="eyebrow">Образовательные организации</span><h1>Православные школы</h1><p>Православные гимназии и школы Московской области.</p></section>
     <section className="public-section schools-section">
       <div className="school-toolbar">
         <label className="school-search"><span>Поиск</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Название школы"/></label>

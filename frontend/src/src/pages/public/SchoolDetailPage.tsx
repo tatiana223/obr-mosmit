@@ -23,7 +23,7 @@ export function SchoolDetailPage() {
     return <main className="school-detail-page">
     <section className={`school-profile ${school.image ? 'has-image' : ''}`}>
       <div className="school-profile-copy">
-        <Link className="school-back" to="/pravoslavnye-shkoly">← Все образовательные организации</Link>
+        <Link className="school-back" to="/pravoslavnye-shkoly">← Все православные школы</Link>
         <span className="eyebrow">Образовательная организация</span>
         <h1>{school.title}</h1><i />
       </div>
