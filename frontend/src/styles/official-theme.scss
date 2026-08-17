@@ -72,7 +72,7 @@
   nav a { color: var(--ink); text-decoration: none; font-size: 15px; transition: color .2s; }
   nav a:hover, nav a.active { color: var(--gold); }
   .sections-menu { position: relative; }
-  .sections-menu summary { min-height: 38px; padding: 8px 13px; display: flex; align-items: center; gap: 8px; color: var(--ink); background: transparent; border: 1px solid #c9b994; border-radius: 4px; cursor: pointer; list-style: none; font-size: 15px; transition: color .2s,background-color .2s,border-color .2s; }
+  .sections-menu summary { min-height: 38px; padding: 8px 13px; display: flex; align-items: center; gap: 8px; color: var(--ink); background: transparent; border: 1px solid #c9b994; border-radius: 4px; cursor: pointer; list-style: none; font-size: 15px; user-select: none; caret-color: transparent; outline: none; transition: color .2s,background-color .2s,border-color .2s; }
   .sections-menu summary::-webkit-details-marker { display: none; }
   .sections-menu summary:hover,.sections-menu[open] summary { color: var(--green); background: rgba(182,154,90,.08); border-color: var(--gold); }
   .sections-menu summary i { width: 15px; display: grid; gap: 3px; }
