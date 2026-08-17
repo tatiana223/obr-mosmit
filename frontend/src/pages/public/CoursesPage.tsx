@@ -16,6 +16,7 @@ type CourseSection = {
   description: string
   to: string
   ctaLabel: string
+  cover?: string
 }
 
 const COURSE_SECTIONS: CourseSection[] = [
@@ -26,6 +27,7 @@ const COURSE_SECTIONS: CourseSection[] = [
       'Программы подготовки специалистов в сфере приходского просвещения: информация об учебной программе, приём на обучение, отделения и материалы для слушателей.',
     to: '/kursy/missionersko-katehizatorskie-kursy',
     ctaLabel: 'Открыть раздел',
+    cover: '/courses/missionary/kolomna.webp',
   },
 ]
 
@@ -54,9 +56,13 @@ export function CoursesPage() {
         <div className="public-competitions-grid">
           {COURSE_SECTIONS.map((section) => (
             <article className="public-competition-card" key={section.id}>
-              <div className="competition-placeholder" aria-hidden="true">
-                <span>Раздел</span>
-              </div>
+              {section.cover ? (
+                <img src={section.cover} alt={`Обложка «${section.title}»`} />
+              ) : (
+                <div className="competition-placeholder" aria-hidden="true">
+                  <span>Раздел</span>
+                </div>
+              )}
               <div className="public-competition-content">
                 <h2>{section.title}</h2>
                 <p>{section.description}</p>
