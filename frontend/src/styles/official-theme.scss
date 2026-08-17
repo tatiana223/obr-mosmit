@@ -61,7 +61,7 @@
   background: var(--paper);
   border-bottom: 1px solid var(--line);
   .official-brand { text-decoration: none; display: flex; align-items: center; gap: 20px; color: var(--green); min-width: 510px; }
-  .official-emblem { width: 74px; height: 92px; border: 0; border-radius: 0; position: relative; display: block; object-fit: contain; }
+  .official-emblem { width: 86px; height: 86px; border: 0; border-radius: 0; position: relative; display: block; object-fit: contain; }
   .official-emblem b { position: absolute; top: 4px; font-size: 24px; font-weight: 400; }
   .official-emblem i { font-style: normal; font-size: 42px; line-height: 1; margin-top: 20px; }
   .official-title { display: block; font: 400 clamp(16px, 1.25vw, 20px)/1.3 Georgia, serif; white-space: nowrap; }
@@ -412,7 +412,7 @@
   .official-topbar { display: none; }
   .official-header { height: 82px; min-height: 82px; padding: 8px 16px; flex-wrap: nowrap; gap: 10px; }
   .official-header .official-brand { min-width: 0; max-width: calc(100% - 68px); gap: 9px; }
-  .official-header .official-emblem { width: 39px; height: 50px; flex: 0 0 auto; }
+  .official-header .official-emblem { width: 46px; height: 46px; flex: 0 0 auto; }
   .official-header .official-emblem i { font-size: 28px; }
   .official-header .official-emblem b { font-size: 18px; }
   .official-header .official-title b { font-size: 12px; }
@@ -480,7 +480,7 @@
   .official-topbar { min-height: 30px; font-size: 10px; }
   .official-header { height: 68px; gap: 22px; }
   .official-header .official-brand { min-width: 430px; gap: 14px; }
-  .official-header .official-emblem { width: 41px; height: 52px; }
+  .official-header .official-emblem { width: 48px; height: 48px; }
   .official-header .official-emblem b { top: 1px; font-size: 18px; }
   .official-header .official-emblem i { font-size: 30px; margin-top: 15px; }
   .official-header .official-title b { font-size: clamp(19px, 1.65vw, 25px); }
@@ -1131,13 +1131,8 @@
   }
 
   .official-header .official-emblem {
-    width: 34px;
-    height: 44px;
-  }
-
-  .official-header .official-title {
-    font-size: 9.5px;
-    line-height: 1.18;
+    width: 40px;
+    height: 40px;
   }
 
   .official-hero-copy h1 {
@@ -1188,8 +1183,8 @@
   }
 
   .official-header .official-emblem {
-    width: 42px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     flex: 0 0 auto;
   }
 
@@ -1358,8 +1353,8 @@
   }
 
   .official-header .official-emblem {
-    width: 34px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
 
   .official-header .official-title {

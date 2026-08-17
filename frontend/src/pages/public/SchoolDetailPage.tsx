@@ -27,7 +27,7 @@ export function SchoolDetailPage() {
         <span className="eyebrow">Образовательная организация</span>
         <h1>{school.title}</h1><i />
       </div>
-      {school.image ? <img src={school.image} alt={school.title}/> : <div className="school-profile-emblem"><img src="/metropolia-emblem.svg" alt=""/></div>}
+      {school.image ? <img src={school.image} alt={school.title}/> : <div className="school-profile-emblem"><img src="/metropolia-emblem.png" alt=""/></div>}
     </section>
 
     {sections.length ? <section className="school-detail-layout">
