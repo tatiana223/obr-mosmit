@@ -788,37 +788,3 @@ if (initialTab === 'winners' || initialTab === 'table') {
 if (initialTab === 'access') {
   loadAccessCodes().catch((error) => showStatus(accessStatus, error.message, true));
 }
-
-function setupEmbedHeightReporter() {
-  const params = new URLSearchParams(window.location.search);
-  if (!params.has('embed') || window.parent === window) return;
-
-  document.documentElement.classList.add('is-embedded');
-
-  const postHeight = () => {
-    const height = Math.ceil(
-      Math.max(
-        document.documentElement.scrollHeight,
-        document.body?.scrollHeight || 0,
-        document.querySelector('.shell')?.scrollHeight || 0
-      )
-    );
-    window.parent.postMessage(
-      { type: 'kbm-organizer-height', height },
-      window.location.origin
-    );
-  };
-
-  const observer = new ResizeObserver(() => {
-    requestAnimationFrame(postHeight);
-  });
-  observer.observe(document.documentElement);
-  if (document.body) observer.observe(document.body);
-  const shell = document.querySelector('.shell');
-  if (shell) observer.observe(shell);
-
-  window.addEventListener('load', postHeight);
-  postHeight();
-}
-
-setupEmbedHeightReporter();
