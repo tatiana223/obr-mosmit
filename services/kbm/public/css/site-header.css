@@ -15,12 +15,12 @@
 .kbm-site-chrome .official-header {
   position: relative;
   z-index: 30;
-  height: 130px;
+  height: 72px;
   padding: 0 4.8%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 30px;
+  gap: 22px;
   background: var(--kbm-paper);
   border-bottom: 1px solid var(--kbm-line);
   box-sizing: border-box;
@@ -30,15 +30,15 @@
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
   color: var(--kbm-green);
   min-width: 0;
   flex: 1 1 auto;
 }
 
 .kbm-site-chrome .official-emblem {
-  width: 86px;
-  height: 86px;
+  width: 52px;
+  height: 52px;
   display: block;
   object-fit: contain;
   flex: 0 0 auto;
@@ -46,21 +46,21 @@
 
 .kbm-site-chrome .official-title {
   display: block;
-  font: 400 clamp(16px, 1.25vw, 20px) / 1.3 Georgia, "Times New Roman", serif;
+  font: 400 clamp(13px, 1.05vw, 16px) / 1.25 Georgia, "Times New Roman", serif;
   white-space: nowrap;
 }
 
 .kbm-site-chrome .official-header nav {
   display: flex;
   align-items: center;
-  gap: clamp(16px, 2vw, 30px);
+  gap: clamp(14px, 1.6vw, 24px);
   white-space: nowrap;
 }
 
 .kbm-site-chrome .official-header nav a {
   color: var(--kbm-ink);
   text-decoration: none;
-  font-size: 15px;
+  font-size: 14px;
   transition: color 0.2s;
 }
 
@@ -73,8 +73,8 @@
 }
 
 .kbm-site-chrome .sections-menu summary {
-  min-height: 38px;
-  padding: 8px 13px;
+  min-height: 34px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -84,7 +84,7 @@
   border-radius: 4px;
   cursor: pointer;
   list-style: none;
-  font-size: 15px;
+  font-size: 14px;
   user-select: none;
   caret-color: transparent;
   outline: none;
@@ -171,13 +171,44 @@
   transform: translateY(-4px) rotate(-45deg);
 }
 
+/* Compact desktop — match main site official-theme */
+@media (min-width: 1121px) {
+  .kbm-site-chrome .official-header {
+    height: 68px;
+    gap: 22px;
+  }
+
+  .kbm-site-chrome .official-brand {
+    gap: 14px;
+  }
+
+  .kbm-site-chrome .official-emblem {
+    width: 48px;
+    height: 48px;
+  }
+
+  .kbm-site-chrome .official-title {
+    font-size: clamp(13px, 1vw, 16px);
+    line-height: 1.22;
+  }
+
+  .kbm-site-chrome .official-header nav {
+    gap: clamp(14px, 1.5vw, 24px);
+  }
+
+  .kbm-site-chrome .official-header nav a,
+  .kbm-site-chrome .sections-menu summary {
+    font-size: 13px;
+  }
+}
+
 @media (max-width: 1100px) {
   .kbm-site-chrome .official-header {
     height: auto;
-    min-height: 110px;
+    min-height: 88px;
     flex-wrap: wrap;
-    padding-top: 15px;
-    padding-bottom: 15px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 
   .kbm-site-chrome .official-header nav {
@@ -187,7 +218,7 @@
 
   .kbm-site-chrome .official-title {
     white-space: normal;
-    font-size: clamp(14px, 1.08vw, 17px);
+    font-size: clamp(12px, 1.08vw, 15px);
     line-height: 1.22;
   }
 }
