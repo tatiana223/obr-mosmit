@@ -10,8 +10,13 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260817-access-sheet" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260817-admin-embed" />
     <link rel="stylesheet" href="/css/site-header.css?v=20260817-compact-header" />
+    <script>
+      if (new URLSearchParams(location.search).has('embed')) {
+        document.documentElement.classList.add('is-embedded');
+      }
+    </script>
   </head>
   <body>
     <div class="kbm-site-chrome">
@@ -244,7 +249,7 @@
       </div>
     </div>
 
-    <script src="/js/site-header.js?v=20260817-header"></script>
-    <script type="module" src="/js/organizer.js?v=20260817-page"></script>
+    <script src="/js/site-header.js?v=20260817-admin-embed"></script>
+    <script type="module" src="/js/organizer.js?v=20260817-admin-embed"></script>
   </body>
 </html>

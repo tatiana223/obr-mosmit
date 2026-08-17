@@ -1,4 +1,6 @@
 (function () {
+  if (document.documentElement.classList.contains('is-embedded')) return;
+
   const chrome = document.querySelector('.kbm-site-chrome');
   if (!chrome) return;
 
