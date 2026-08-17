@@ -53,14 +53,8 @@ export function MissionaryCourseDetailPage() {
       <Link className="article-back" to={MISSIONARY_COURSES_BASE}>
         ← К миссионерско-катехизаторским курсам
       </Link>
-      <span className="eyebrow">Миссионерско-катехизаторские курсы</span>
       <h1>{topic.title}</h1>
       <p className="lead">{topic.description}</p>
-      {topic.cover ? (
-        <div className="news-cover" aria-hidden={false}>
-          <img src={topic.cover} alt={`Обложка «${topic.title}»`} />
-        </div>
-      ) : null}
       <div className="article-text">{topic.body.map(renderBlock)}</div>
     </main>
   )

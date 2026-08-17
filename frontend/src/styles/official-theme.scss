@@ -1673,3 +1673,53 @@
     border-top: 0;
   }
 }
+
+/* Compact missionary course topic pages (no cover image) */
+.official-theme .missionary-course-detail-page {
+  max-width: 920px;
+  padding-top: 28px;
+  padding-bottom: 40px;
+}
+.official-theme .missionary-course-detail-page > .article-back {
+  margin-bottom: 14px;
+}
+.official-theme .missionary-course-detail-page > h1 {
+  margin: 0 0 10px;
+  font-size: clamp(24px, 2.8vw, 34px);
+  line-height: 1.2;
+}
+.official-theme .missionary-course-detail-page > .lead {
+  margin: 0 0 18px;
+  max-width: 720px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.official-theme .missionary-course-detail-page .article-text {
+  max-width: 820px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.official-theme .missionary-course-detail-page .article-text h2 {
+  margin: 1.35em 0 0.45em;
+  font-size: 1.25em;
+}
+.official-theme .missionary-course-detail-page .article-text h3 {
+  margin: 1.15em 0 0.35em;
+  font-size: 1.08em;
+}
+.official-theme .missionary-course-detail-page .article-text p,
+.official-theme .missionary-course-detail-page .article-text ul,
+.official-theme .missionary-course-detail-page .article-text ol {
+  margin: 0 0 0.75em;
+}
+.official-theme .missionary-course-detail-page .missionary-course-html {
+  margin: 0 0 1em;
+  overflow-x: auto;
+}
+.official-theme .missionary-course-detail-page .missionary-course-html table {
+  font-size: 13px;
+}
+.official-theme .missionary-course-detail-page .news-cover {
+  display: none;
+}
