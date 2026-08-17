@@ -51,3 +51,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+services/kbm/node_modules/
+services/kbm/data/
+services/kbm/.env
+

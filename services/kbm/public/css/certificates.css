@@ -1,0 +1,268 @@
+.certificate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.certificate-thumb {
+  appearance: none;
+  border: 1px solid rgba(122, 91, 46, 0.25);
+  border-radius: 14px;
+  background: rgba(255, 252, 246, 0.95);
+  padding: 0.65rem;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.certificate-thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(28, 42, 56, 0.14);
+}
+
+.certificate-thumb-label {
+  display: block;
+  margin-top: 0.55rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Чистая рамка + весь текст поверх (по ДИПЛОМ.docx) */
+.certificate {
+  --tnr: "Times New Roman", Times, serif;
+  position: relative;
+  width: min(100%, 520px);
+  aspect-ratio: 6300 / 8910;
+  margin: 0 auto;
+  container-type: inline-size;
+  background: url('/assets/certificate-bg.jpg?v=5') center / 100% 100% no-repeat;
+  color: #111;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(28, 42, 56, 0.16);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.certificate.is-compact {
+  width: 100%;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.certificate-title,
+.certificate-subtitle,
+.certificate-awarded,
+.certificate-name,
+.certificate-locality,
+.certificate-place,
+.certificate-nomination,
+.certificate-work,
+.certificate-chairman,
+.certificate-date {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  font-family: var(--tnr);
+  font-weight: 400;
+  color: #111;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none;
+  -webkit-text-fill-color: #111;
+}
+
+/* ДИПЛОМ — TNR 48, центр, верхний регистр */
+.certificate-title {
+  top: 32.8%;
+  left: 12%;
+  right: 12%;
+  text-align: center;
+  font-size: 8.05cqw;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Подзаголовок — TNR 16, центр, верхний регистр */
+.certificate-subtitle {
+  top: 39.2%;
+  left: 12%;
+  right: 12%;
+  text-align: center;
+  font-size: 2.68cqw;
+  line-height: 1.28;
+  text-transform: uppercase;
+}
+
+/* награждается — TNR 14, центр, нижний регистр */
+.certificate-awarded {
+  top: 48.8%;
+  left: 12%;
+  right: 12%;
+  text-align: center;
+  font-size: 2.35cqw;
+  line-height: 1.15;
+  text-transform: none;
+}
+
+/* ФАМИЛИЯ ИМЯ — TNR 18, центр, верхний регистр */
+.certificate-name {
+  top: 52%;
+  left: 12%;
+  right: 12%;
+  text-align: center;
+  font-size: 3.02cqw;
+  line-height: 1.1;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* (город), — TNR 14 */
+.certificate-locality {
+  top: 55.2%;
+  left: 12%;
+  right: 12%;
+  text-align: center;
+  font-size: 2.35cqw;
+  line-height: 1.15;
+}
+
+/* занявшая I/II/III место — TNR 14 */
+.certificate-place {
+  top: 57.6%;
+  left: 12%;
+  right: 12%;
+  text-align: center;
+  font-size: 2.35cqw;
+  line-height: 1.15;
+}
+
+/* в номинации «…» — TNR 14 */
+.certificate-nomination {
+  top: 60%;
+  left: 12%;
+  right: 12%;
+  text-align: center;
+  font-size: 2.35cqw;
+  line-height: 1.15;
+}
+
+/* Художественная работа: «…» — TNR 14 */
+.certificate-work {
+  top: 62.4%;
+  left: 10%;
+  right: 10%;
+  text-align: center;
+  font-size: 2.35cqw;
+  line-height: 1.15;
+}
+
+/* Председатель… — TNR 10, слева, курсив */
+.certificate-chairman {
+  top: 68.5%;
+  left: 20%;
+  right: 36%;
+  text-align: left;
+  font-size: 1.68cqw;
+  line-height: 1.25;
+  font-style: italic;
+}
+
+/* Дата в круге — TNR 11, 3 строки: число / месяц / год */
+.certificate-date {
+  top: auto;
+  left: 40%;
+  right: 40%;
+  bottom: 12.9%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  text-align: center;
+  font-size: 1.85cqw;
+  line-height: 1.15;
+}
+
+.certificate-date span {
+  display: block;
+  background: transparent !important;
+}
+
+.certificate-overlay-card {
+  width: min(780px, 96vw);
+}
+
+.certificate-stage {
+  display: grid;
+  place-items: center;
+  padding: 0.5rem 0 1rem;
+}
+
+.certificate-stage .certificate {
+  width: min(100%, 640px);
+}
+
+.print-root {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  .no-print,
+  .overlay,
+  .shell {
+    display: none !important;
+  }
+
+  .print-root {
+    display: block !important;
+  }
+
+  .print-root .certificate {
+    width: 210mm;
+    height: 297mm;
+    aspect-ratio: auto;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .print-root .certificate .certificate-title {
+    font-size: 48pt !important;
+  }
+
+  .print-root .certificate .certificate-subtitle {
+    font-size: 16pt !important;
+  }
+
+  .print-root .certificate .certificate-awarded,
+  .print-root .certificate .certificate-locality,
+  .print-root .certificate .certificate-place,
+  .print-root .certificate .certificate-nomination,
+  .print-root .certificate .certificate-work {
+    font-size: 14pt !important;
+  }
+
+  .print-root .certificate .certificate-name {
+    font-size: 18pt !important;
+  }
+
+  .print-root .certificate .certificate-chairman {
+    font-size: 10pt !important;
+  }
+
+  .print-root .certificate .certificate-date {
+    font-size: 11pt !important;
+  }
+
+  .print-root .certificate:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+}

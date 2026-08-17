@@ -1,8 +1,17 @@
 obr-mosmit.ru {
-    encode zstd gzip
-    reverse_proxy app:8081
+	encode zstd gzip
+
+	# Форма конкурса «Красота Божьего мира»
+	redir /konkursy/krasota-bozhego-mira /konkursy/krasota-bozhego-mira/ 308
+	handle_path /konkursy/krasota-bozhego-mira* {
+		reverse_proxy kbm:3000
+	}
+
+	handle {
+		reverse_proxy app:8081
+	}
 }
 
 www.obr-mosmit.ru {
-    redir https://obr-mosmit.ru{uri} permanent
+	redir https://obr-mosmit.ru{uri} permanent
 }

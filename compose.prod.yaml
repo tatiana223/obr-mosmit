@@ -32,6 +32,19 @@ services:
       db:
         condition: service_healthy
 
+  kbm:
+    build:
+      context: ./services/kbm
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      BASE_PATH: /konkursy/krasota-bozhego-mira
+      ORGANIZER_USER: ${KBM_ORGANIZER_USER:-organizer}
+      ORGANIZER_PASSWORD: ${KBM_ORGANIZER_PASSWORD:-}
+    volumes:
+      - kbm_data:/app/data
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -45,9 +58,11 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+      - kbm
 
 volumes:
   postgres_data:
   uploads_data:
   caddy_data:
   caddy_config:
+  kbm_data:
