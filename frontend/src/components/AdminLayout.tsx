@@ -33,10 +33,9 @@ export function AdminLayout() {
     <header className="admin-elegant-header">
       <div className="admin-elegant-header-inner">
         <NavLink className="admin-elegant-brand" to="/control-center">
-          <img src="/metropolia-emblem.svg" alt="" aria-hidden="true" />
           <span>
-            <small>Управление сайтом</small>
             <strong>Кабинет администратора</strong>
+            <small>Управление содержимым сайта</small>
           </span>
         </NavLink>
 

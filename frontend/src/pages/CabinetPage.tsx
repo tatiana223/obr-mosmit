@@ -61,11 +61,6 @@ export function CabinetPage() {
   return (
     <main className="admin-login-page admin-login-elegant official-theme">
       <section className="admin-login-elegant-card">
-        <div className="admin-login-brand">
-          <img src="/metropolia-emblem.svg" alt="" aria-hidden="true" />
-          <span>Московская митрополия</span>
-        </div>
-
         <header>
           <span>Администрирование</span>
           <h1>Кабинет администратора</h1>

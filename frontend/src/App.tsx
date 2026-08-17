@@ -14,6 +14,8 @@ import { DocumentDetailPage } from './pages/public/DocumentDetailPage';
 import { DocumentCategoryPage } from './pages/public/DocumentCategoryPage';
 import { ContactsPage } from './pages/public/ContactsPage';
 import { CompetitionsPage } from './pages/public/CompetitionsPage';
+import { CompetitionApplicationPage } from './pages/public/CompetitionApplicationPage';
+import { ApplicationStatusPage } from './pages/public/ApplicationStatusPage';
 import { CabinetPage } from './pages/CabinetPage';
 import { AdminCompetitionsPage } from './pages/AdminCompetitionsPage';
 import { AdminSchoolsPage } from './pages/AdminSchoolsPage';
@@ -22,6 +24,7 @@ import { AdminCoursesPage } from './pages/AdminCoursesPage';
 import { CoursesPage } from './pages/public/CoursesPage';
 import { AdminContactsPage } from './pages/AdminContactsPage';
 import { AdminDocumentsPage } from './pages/AdminDocumentsPage';
+import { DocumentEditorPage } from './pages/DocumentEditorPage';
 import './styles/main.scss';
 import './styles/public.scss';
 import './styles/official-theme.scss';
@@ -34,6 +37,8 @@ export default function App() {
       <Route path="pravoslavnye-shkoly" element={<SchoolsPage />}/>
       <Route path="pravoslavnye-shkoly/:id" element={<SchoolDetailPage />}/>
       <Route path="konkursy" element={<CompetitionsPage />}/>
+      <Route path="konkursy/:id/zayavka" element={<CompetitionApplicationPage />}/>
+      <Route path="proverit-zayavku" element={<ApplicationStatusPage />}/>
       <Route path="kursy" element={<CoursesPage />}/>
       <Route path="dokumenty" element={<DocumentsPage />}/>
       <Route path="dokumenty/razdel/:category" element={<DocumentCategoryPage />}/>
@@ -46,6 +51,8 @@ export default function App() {
         <Route path="news/new" element={<NewsEditorPage />}/>
         <Route path="news/:id" element={<NewsEditorPage />}/>
         <Route path="documents" element={<AdminDocumentsPage />}/>
+        <Route path="documents/new" element={<DocumentEditorPage />}/>
+        <Route path="documents/:id" element={<DocumentEditorPage />}/>
         <Route path="schools" element={<AdminSchoolsPage />}/>
         <Route path="competitions" element={<AdminCompetitionsPage />}/>
         <Route path="courses" element={<AdminCoursesPage />}/>

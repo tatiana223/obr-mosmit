@@ -1,0 +1,11 @@
+alter table competition_applications alter column user_id drop not null;
+alter table competition_applications drop constraint if exists competition_applications_competition_id_user_id_key;
+alter table competition_applications add column tracking_code varchar(40);
+alter table competition_applications add column participant_email varchar(320);
+alter table competition_applications add column participant_phone varchar(50);
+update competition_applications a set participant_email = u.email from site_users u where a.user_id = u.id and a.participant_email is null;
+update competition_applications set tracking_code = 'LEGACY-' || id where tracking_code is null;
+alter table competition_applications alter column tracking_code set not null;
+alter table competition_applications alter column participant_email set not null;
+alter table competition_applications add constraint competition_applications_tracking_code_key unique (tracking_code);
+create index idx_competition_applications_email on competition_applications (lower(participant_email));

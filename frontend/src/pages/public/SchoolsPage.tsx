@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { SchoolItem } from '../../api/schoolsApi';
 import { useSchools } from '../../api/schoolsApi';
+import { Pagination } from '../../components/Pagination';
 function textFromHtml(html: string) {
     return new DOMParser().parseFromString(html, 'text/html').body.textContent?.replace(/\s+/g, ' ').trim() ?? '';
 }
@@ -27,12 +28,16 @@ export function SchoolsPage() {
     const { data = [], isLoading, isError } = useSchools();
     const [query, setQuery] = useState('');
     const [location, setLocation] = useState('');
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
+    useEffect(() => { setPage(1); }, [query, location]);
     const schools = useMemo(() => data.map(school => ({ school, location: schoolLocation(school) })), [data]);
     const locations = useMemo(() => [...new Set(schools.map(item => item.location).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru')), [schools]);
     const filtered = useMemo(() => schools.filter(item => {
         const search = query.trim().toLocaleLowerCase('ru');
         return (!search || `${item.school.title} ${item.school.summary}`.toLocaleLowerCase('ru').includes(search)) && (!location || item.location === location);
     }), [schools, query, location]);
+    const pageItems = filtered.slice((page - 1) * pageSize, page * pageSize);
     return <main>
     <section className="page-hero"><span className="eyebrow">Образовательные организации</span><h1>Православные школы</h1><p>Православные гимназии и школы Московской области.</p></section>
     <section className="public-section schools-section">
@@ -45,12 +50,12 @@ export function SchoolsPage() {
       {isError && <p>Не удалось загрузить школы. Проверьте, что backend запущен.</p>}
       {!isLoading && !isError && data.length === 0 && <p>Список школ пока не импортирован.</p>}
       {!isLoading && !isError && data.length > 0 && filtered.length === 0 && <p className="school-no-results">По заданным условиям школы не найдены.</p>}
-      <div className="schools-grid">{filtered.map(({ school, location: place }) => <article className={school.image ? 'has-image' : 'no-image'} key={school.id}>
+      <div className="schools-grid">{pageItems.map(({ school, location: place }) => <article className={school.image ? 'has-image' : 'no-image'} key={school.id}>
         {school.image && <img src={school.image} alt=""/>}
         <div><span>{place || 'Православная школа'}</span><h2>{school.title}</h2><p>{school.summary}</p>
           <Link className="school-more" to={`/pravoslavnye-shkoly/${school.id}`}>Подробнее →</Link>
         </div>
-      </article>)}</div>
+      </article>)}</div><Pagination page={page} totalItems={filtered.length} pageSize={pageSize} onPageChange={setPage} label="Школы"/>
     </section>
   </main>;
 }
