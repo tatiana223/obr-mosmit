@@ -27,6 +27,7 @@ public class PublicController {
             "/control-center/documents",
             "/control-center/schools",
             "/control-center/competitions",
+            "/control-center/competitions/krasota-bozhego-mira",
             "/control-center/courses",
             "/control-center/users",
             "/control-center/contacts"
