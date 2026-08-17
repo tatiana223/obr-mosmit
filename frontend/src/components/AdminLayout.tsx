@@ -40,7 +40,6 @@ export function AdminLayout() {
         </NavLink>
 
         <div className="admin-header-actions">
-          <NavLink className="admin-view-site" to="/">Перейти на сайт</NavLink>
           <button className="admin-elegant-logout" type="button" onClick={logout}>Выйти</button>
         </div>
       </div>

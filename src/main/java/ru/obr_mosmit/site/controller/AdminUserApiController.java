@@ -1,6 +1,10 @@
 package ru.obr_mosmit.site.controller;
 
+import java.security.Principal;
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +37,17 @@ public class AdminUserApiController {
         }
         user.setEnabled(request.enabled());
         return dto(users.save(user));
+    }
+
+    @DeleteMapping("/{id}")
+    ResponseEntity<?> delete(@PathVariable Long id, Principal principal) {
+        SiteUser user = users.findById(id).orElseThrow();
+        if (principal != null && user.getEmail().equalsIgnoreCase(principal.getName())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Нельзя удалить текущую учётную запись администратора");
+        }
+        users.delete(user);
+        return ResponseEntity.noContent().build();
     }
 
     private UserDto dto(SiteUser user) {

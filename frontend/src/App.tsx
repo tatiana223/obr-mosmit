@@ -44,21 +44,21 @@ export default function App() {
       <Route path="dokumenty/razdel/:category" element={<DocumentCategoryPage />}/>
       <Route path="dokumenty/:id" element={<DocumentDetailPage />}/>
       <Route path="kontakty" element={<ContactsPage />}/>
-      <Route path="cabinet" element={<CabinetPage />}/>
-      <Route path="control-center" element={<AdminLayout />}>
-        <Route index element={<DashboardPage />}/>
-        <Route path="news" element={<NewsListPage />}/>
-        <Route path="news/new" element={<NewsEditorPage />}/>
-        <Route path="news/:id" element={<NewsEditorPage />}/>
-        <Route path="documents" element={<AdminDocumentsPage />}/>
-        <Route path="documents/new" element={<DocumentEditorPage />}/>
-        <Route path="documents/:id" element={<DocumentEditorPage />}/>
-        <Route path="schools" element={<AdminSchoolsPage />}/>
-        <Route path="competitions" element={<AdminCompetitionsPage />}/>
-        <Route path="courses" element={<AdminCoursesPage />}/>
-        <Route path="users" element={<AdminUsersPage />}/>
-        <Route path="contacts" element={<AdminContactsPage />}/>
-      </Route>
+    </Route>
+    <Route path="/cabinet" element={<CabinetPage />}/>
+    <Route path="/control-center" element={<AdminLayout />}>
+      <Route index element={<DashboardPage />}/>
+      <Route path="news" element={<NewsListPage />}/>
+      <Route path="news/new" element={<NewsEditorPage />}/>
+      <Route path="news/:id" element={<NewsEditorPage />}/>
+      <Route path="documents" element={<AdminDocumentsPage />}/>
+      <Route path="documents/new" element={<DocumentEditorPage />}/>
+      <Route path="documents/:id" element={<DocumentEditorPage />}/>
+      <Route path="schools" element={<AdminSchoolsPage />}/>
+      <Route path="competitions" element={<AdminCompetitionsPage />}/>
+      <Route path="courses" element={<AdminCoursesPage />}/>
+      <Route path="users" element={<AdminUsersPage />}/>
+      <Route path="contacts" element={<AdminContactsPage />}/>
     </Route>
     <Route path="/admin/*" element={<Navigate to="/" replace/>}/>
     <Route path="*" element={<Navigate to="/" replace/>}/>
