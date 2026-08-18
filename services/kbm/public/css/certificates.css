@@ -209,6 +209,27 @@
   display: none;
 }
 
+/* Off-screen full-size pages for html2canvas → PDF */
+.print-root.pdf-capture {
+  display: block !important;
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 210mm;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.print-root.pdf-capture .certificate {
+  width: 210mm;
+  height: 297mm;
+  aspect-ratio: auto;
+  box-shadow: none;
+  margin: 0;
+}
+
 @media print {
   body {
     background: #fff !important;
