@@ -805,3 +805,51 @@ export async function parseExcelApplicationFile(file, context) {
 
 export const EXCEL_IMPORT_HINT =
   'Поддерживается официальная форма заявки КБМ (.xls/.xlsx): Фамилия, Имя, Возраст, Название рисунка, Номинация, Адрес, Название учреждения, Педагог, телефоны, согласия. Также подходит таблица с колонками как в CSV-выгрузке формы.';
+
+/** Нормализация строк для сравнения дубликатов при импорте. */
+export function normalizeImportMatchText(value) {
+  return String(value || '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/ё/g, 'е')
+    .replace(/Ё/g, 'Е')
+    .replace(/["«»„“”']/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLocaleLowerCase('ru-RU');
+}
+
+/** Год рождения или возраст → единый birthYear для сравнения. */
+export function normalizeImportBirthYear(person, competitionYear = COMPETITION_YEAR) {
+  const birthYear = Number(person?.birthYear);
+  if (Number.isFinite(birthYear) && birthYear >= competitionYear - 17 && birthYear <= competitionYear - 9) {
+    return birthYear;
+  }
+  const age = Number(person?.age);
+  if (Number.isFinite(age) && age >= 9 && age <= 17) {
+    return competitionYear - Math.round(age);
+  }
+  return null;
+}
+
+/**
+ * Полное совпадение по 5 полям: фамилия, имя, возраст/год рождения, номинация, название работы.
+ */
+export function isSameImportedParticipant(a, b, competitionYear = COMPETITION_YEAR) {
+  if (!a || !b) return false;
+  const birthA = normalizeImportBirthYear(a, competitionYear);
+  const birthB = normalizeImportBirthYear(b, competitionYear);
+  if (birthA == null || birthB == null || birthA !== birthB) return false;
+  return (
+    normalizeImportMatchText(a.lastName) === normalizeImportMatchText(b.lastName) &&
+    normalizeImportMatchText(a.firstName) === normalizeImportMatchText(b.firstName) &&
+    normalizeImportMatchText(a.nomination) === normalizeImportMatchText(b.nomination) &&
+    normalizeImportMatchText(a.workTitle) === normalizeImportMatchText(b.workTitle)
+  );
+}
+
+export function findExistingImportDuplicate(candidate, existingList, competitionYear = COMPETITION_YEAR) {
+  if (!candidate || !Array.isArray(existingList)) return null;
+  return (
+    existingList.find((person) => isSameImportedParticipant(candidate, person, competitionYear)) || null
+  );
+}
