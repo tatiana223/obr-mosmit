@@ -325,6 +325,20 @@ input[readonly]:focus {
   visibility: hidden;
 }
 
+/* Временная подсказка ожидания ЕГРЮЛ — не резервирует место, когда скрыта */
+.egrul-wait-note {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.egrul-wait-note.is-hidden {
+  display: none;
+}
+
 .municipal-formation-field {
   display: grid;
   gap: 0.4rem;
