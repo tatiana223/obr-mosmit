@@ -820,7 +820,8 @@ input:disabled {
   background: rgba(255, 253, 248, 0.85);
 }
 
-.deanery-participants li.needs-review {
+/* Permanent beige tint for Excel-imported cards (survives edits / reload). */
+.deanery-participants li.imported-from-excel {
   border: 1px solid #e2b56f;
   background: #fff7e8;
 }
