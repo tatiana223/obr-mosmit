@@ -278,10 +278,10 @@ input[readonly]:focus {
   z-index: 1000;
 }
 
+/* Без min-height: иначе у «Тип/Название учреждения» огромный зазор до поля */
 .institution-name-field #institutionNameLabel,
 .field-title {
   display: block;
-  min-height: 2.6em;
   line-height: 1.3;
 }
 
