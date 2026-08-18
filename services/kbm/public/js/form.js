@@ -1269,14 +1269,23 @@ function selectSuggest(item) {
   hideSuggest();
 }
 
+/** Поиск ЕГРЮЛ только после второго слова (токены через пробел). */
+function hasSecondSearchWord(value) {
+  return String(value || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length >= 2;
+}
+
 async function fetchEgrulSuggestions(
   query,
-  { religiousOnly = false, locality = '', municipal = '' } = {}
+  { religiousOnly = false, locality = '', municipal = '', rfSubject = '' } = {}
 ) {
   const params = new URLSearchParams({ q: query });
   if (religiousOnly) params.set('filter', 'religious');
   if (locality) params.set('locality', locality);
   if (municipal) params.set('municipal', municipal);
+  if (rfSubject) params.set('rfSubject', rfSubject);
   const response = await fetch(`/api/egrul-suggest?${params.toString()}`);
   const data = await response.json();
   if (!response.ok) {
@@ -1288,7 +1297,7 @@ async function fetchEgrulSuggestions(
 function scheduleEgrulSearch() {
   clearTimeout(suggestTimer);
   const query = institutionName.value.trim();
-  if (!usesEgrul() || query.length < 3) {
+  if (!usesEgrul() || !hasSecondSearchWord(query)) {
     hideSuggest();
     return;
   }
@@ -1298,6 +1307,7 @@ function scheduleEgrulSearch() {
   const municipal = String(
     workForm?.querySelector('[name="municipalFormation"]')?.value || ''
   ).trim();
+  const rfSubject = String(workForm?.querySelector('[name="rfSubject"]')?.value || '').trim();
 
   suggestTimer = setTimeout(async () => {
     try {
@@ -1309,6 +1319,7 @@ function scheduleEgrulSearch() {
         religiousOnly,
         locality: religiousOnly ? locality : '',
         municipal: religiousOnly ? municipal : '',
+        rfSubject,
       });
       if (institutionName.value.trim() !== query) return;
       renderSuggest(items);

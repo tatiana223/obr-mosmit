@@ -886,7 +886,207 @@ function buildReligiousSearchQueries(query, { locality = '', municipal = '' } = 
   return variants.slice(0, 3);
 }
 
-async function searchEgrulOnce(searchQuery, { retries = 2 } = {}) {
+/** Коды регионов ФНС для фильтра `region` на egrul.nalog.ru */
+const RF_SUBJECT_REGION_CODES = {
+  'республика адыгея': '01',
+  адыгея: '01',
+  'республика башкортостан': '02',
+  башкортостан: '02',
+  башкирия: '02',
+  'республика бурятия': '03',
+  бурятия: '03',
+  'республика алтай': '04',
+  'республика дагестан': '05',
+  дагестан: '05',
+  'республика ингушетия': '06',
+  ингушетия: '06',
+  'кабардино-балкарская республика': '07',
+  'кабардино-балкария': '07',
+  'республика калмыкия': '08',
+  калмыкия: '08',
+  'карачаево-черкесская республика': '09',
+  'карачаево-черкесия': '09',
+  'республика карелия': '10',
+  карелия: '10',
+  'республика коми': '11',
+  коми: '11',
+  'республика марий эл': '12',
+  'марий эл': '12',
+  'республика мордовия': '13',
+  мордовия: '13',
+  'республика саха (якутия)': '14',
+  'республика саха': '14',
+  якутия: '14',
+  'республика северная осетия-алания': '15',
+  'республика северная осетия — алания': '15',
+  'северная осетия': '15',
+  'северная осетия-алания': '15',
+  алания: '15',
+  'республика татарстан': '16',
+  татарстан: '16',
+  'республика тыва': '17',
+  тыва: '17',
+  тува: '17',
+  'удмуртская республика': '18',
+  удмуртия: '18',
+  'республика хакасия': '19',
+  хакасия: '19',
+  'чеченская республика': '20',
+  чечня: '20',
+  'чувашская республика': '21',
+  'чувашия': '21',
+  'алтайский край': '22',
+  'краснодарский край': '23',
+  'красноярский край': '24',
+  'приморский край': '25',
+  'ставропольский край': '26',
+  'хабаровский край': '27',
+  'амурская область': '28',
+  'архангельская область': '29',
+  'астраханская область': '30',
+  'белгородская область': '31',
+  'брянская область': '32',
+  'владимирская область': '33',
+  'волгоградская область': '34',
+  'вологодская область': '35',
+  'воронежская область': '36',
+  'ивановская область': '37',
+  'иркутская область': '38',
+  'калининградская область': '39',
+  'калужская область': '40',
+  'камчатский край': '41',
+  'кемеровская область': '42',
+  'кемеровская область - кузбасс': '42',
+  'кемеровская область — кузбасс': '42',
+  кузбасс: '42',
+  'кировская область': '43',
+  'костромская область': '44',
+  'курганская область': '45',
+  'курская область': '46',
+  'ленинградская область': '47',
+  'липецкая область': '48',
+  'магаданская область': '49',
+  'московская область': '50',
+  'мурманская область': '51',
+  'нижегородская область': '52',
+  'новгородская область': '53',
+  'новосибирская область': '54',
+  'омская область': '55',
+  'оренбургская область': '56',
+  'орловская область': '57',
+  'пензенская область': '58',
+  'пермский край': '59',
+  'псковская область': '60',
+  'ростовская область': '61',
+  'рязанская область': '62',
+  'самарская область': '63',
+  'саратовская область': '64',
+  'сахалинская область': '65',
+  'свердловская область': '66',
+  'смоленская область': '67',
+  'тамбовская область': '68',
+  'тверская область': '69',
+  'томская область': '70',
+  'тульская область': '71',
+  'тюменская область': '72',
+  'ульяновская область': '73',
+  'челябинская область': '74',
+  'забайкальский край': '75',
+  'ярославская область': '76',
+  'город москва': '77',
+  москва: '77',
+  'г. москва': '77',
+  'г москва': '77',
+  'санкт-петербург': '78',
+  'город санкт-петербург': '78',
+  'г. санкт-петербург': '78',
+  'г санкт-петербург': '78',
+  'спб': '78',
+  'еврейская автономная область': '79',
+  'ненецкий автономный округ': '83',
+  'ханты-мансийский автономный округ': '86',
+  'ханты-мансийский автономный округ-югра': '86',
+  'ханты-мансийский автономный округ — югра': '86',
+  югра: '86',
+  'хмао': '86',
+  'хмао-югра': '86',
+  'чукотский автономный округ': '87',
+  'чукотский ао': '87',
+  чукотка: '87',
+  'ямало-ненецкий автономный округ': '89',
+  'янао': '89',
+  'запорожская область': '90',
+  'республика крым': '91',
+  крым: '91',
+  'город севастополь': '92',
+  севастополь: '92',
+  'г. севастополь': '92',
+  'донецкая народная республика': '93',
+  днр: '93',
+  'луганская народная республика': '94',
+  лнр: '94',
+  'херсонская область': '95',
+};
+
+function normalizeRfSubjectKey(value) {
+  return String(value || '')
+    .toLocaleLowerCase('ru-RU')
+    .replace(/ё/g, 'е')
+    .replace(/[«»"']/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function resolveEgrulRegionCode(rfSubject) {
+  const key = normalizeRfSubjectKey(rfSubject);
+  if (!key) return '';
+  if (RF_SUBJECT_REGION_CODES[key]) return RF_SUBJECT_REGION_CODES[key];
+
+  const withoutCityPrefix = key.replace(/^г\.?\s+/, 'город ').trim();
+  if (RF_SUBJECT_REGION_CODES[withoutCityPrefix]) {
+    return RF_SUBJECT_REGION_CODES[withoutCityPrefix];
+  }
+
+  // Мягкий поиск по точному совпадению ключей карты (без ложных «Москва» ⊂ «Московская»).
+  for (const [name, code] of Object.entries(RF_SUBJECT_REGION_CODES)) {
+    if (name === key) return code;
+  }
+  return '';
+}
+
+function itemMatchesRfSubject(item, rfSubject) {
+  const subject = String(rfSubject || '').replace(/\s+/g, ' ').trim();
+  if (!subject) return true;
+
+  const needle = normalizeRfSubjectKey(subject);
+  const hay = [item.region, item.locality, item.address]
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase('ru-RU')
+    .replace(/ё/g, 'е');
+
+  if (!hay) return true;
+
+  if (
+    needle === 'москва' ||
+    needle === 'город москва' ||
+    needle === 'г. москва' ||
+    needle === 'г москва'
+  ) {
+    return (
+      /(?:^|[,\s|])(?:г\.?\s*)?москва(?:$|[,\s|])/i.test(hay) ||
+      /город\s+москва/i.test(hay)
+    ) && !/московская\s+область/i.test(hay);
+  }
+
+  if (/московская\s+область/.test(needle)) {
+    return /московская\s+область/i.test(hay);
+  }
+
+  return hay.includes(needle);
+}
+
+async function searchEgrulOnce(searchQuery, { retries = 2, region = '' } = {}) {
   let lastError = null;
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
@@ -899,7 +1099,7 @@ async function searchEgrulOnce(searchQuery, { retries = 2 } = {}) {
         query: searchQuery,
         vyp3CaptchaToken: '',
         page: '',
-        region: '',
+        region: String(region || '').trim(),
         PreventChromeAutocomplete: '',
       });
 
@@ -973,10 +1173,23 @@ async function searchEgrulOnce(searchQuery, { retries = 2 } = {}) {
 
 async function searchEgrul(
   query,
-  { religiousOnly = false, locality = '', municipal = '' } = {}
+  { religiousOnly = false, locality = '', municipal = '', region = '', rfSubject = '' } = {}
 ) {
+  const regionCode = String(region || '').trim() || resolveEgrulRegionCode(rfSubject);
+  const subjectFilter = String(rfSubject || '').trim();
+
+  const applySubjectFilter = (items) => {
+    if (!subjectFilter) return items;
+    const matched = items.filter((item) => itemMatchesRfSubject(item, subjectFilter));
+    // Если регион задан кодом ФНС — доверяем API и мягко подчищаем хвост.
+    // Если кода нет — оставляем только совпавшие по тексту субъекта.
+    if (regionCode) return matched.length ? matched : items;
+    return matched;
+  };
+
   if (!religiousOnly) {
-    return (await searchEgrulOnce(String(query || '').trim())).slice(0, 12);
+    const items = await searchEgrulOnce(String(query || '').trim(), { region: regionCode });
+    return applySubjectFilter(items).slice(0, 12);
   }
 
   const place = normalizePlaceSearchToken(locality) || normalizePlaceSearchToken(municipal);
@@ -990,7 +1203,7 @@ async function searchEgrul(
       if (index > 0) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
-      const items = await searchEgrulOnce(searchQuery, { retries: 1 });
+      const items = await searchEgrulOnce(searchQuery, { retries: 1, region: regionCode });
       for (const item of items) {
         if (!isLocalReligiousOrganization(item.name, item.shortName)) continue;
         const key = item.ogrn || item.inn || item.name;
@@ -1022,7 +1235,7 @@ async function searchEgrul(
     if (matched.length >= 3) list = matched;
   }
 
-  return list.slice(0, 12);
+  return applySubjectFilter(list).slice(0, 12);
 }
 
 function cleanPlacePart(value) {
@@ -1096,7 +1309,9 @@ function buildPlaceInfo(name, shortName, address, regionRaw) {
 
 app.get('/api/egrul-suggest', async (req, res) => {
   const query = String(req.query.q || '').trim();
-  if (query.length < 3) {
+  const words = query.split(/\s+/).filter(Boolean);
+  // Не ищем по одному слову (снижает нагрузку на ЕГРЮЛ).
+  if (words.length < 2) {
     return res.json([]);
   }
 
@@ -1105,9 +1320,17 @@ app.get('/api/egrul-suggest', async (req, res) => {
     String(req.query.kind || '').trim() === 'religious';
   const locality = String(req.query.locality || '').trim();
   const municipal = String(req.query.municipal || '').trim();
+  const rfSubject = String(req.query.rfSubject || '').trim();
+  const region = String(req.query.region || '').trim();
 
   try {
-    const items = await searchEgrul(query, { religiousOnly, locality, municipal });
+    const items = await searchEgrul(query, {
+      religiousOnly,
+      locality,
+      municipal,
+      region,
+      rfSubject,
+    });
     res.json(items);
   } catch (error) {
     res.status(502).json({ error: error.message || 'Ошибка поиска ЕГРЮЛ' });
