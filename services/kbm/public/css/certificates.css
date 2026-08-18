@@ -36,7 +36,7 @@
   aspect-ratio: 6300 / 8910;
   margin: 0 auto;
   container-type: inline-size;
-  background: url('/assets/certificate-bg.jpg?v=5') center / 100% 100% no-repeat;
+  background: url('../assets/certificate-bg.jpg?v=5') center / 100% 100% no-repeat;
   color: #111;
   overflow: hidden;
   box-shadow: 0 10px 28px rgba(28, 42, 56, 0.16);
