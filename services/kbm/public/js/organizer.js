@@ -29,6 +29,7 @@ let participants = [];
 let submissionsByDeanery = {};
 let accessItems = [];
 let tableViewMode = 'deanery';
+let winnersOnlyFilter = false;
 let dirtyDeaneries = new Set();
 
 function syncSaveButtons() {
@@ -281,10 +282,22 @@ function formatRepresentative(p) {
   return '—';
 }
 
+function formatPlaceLabel(place) {
+  const value = String(place || '').trim();
+  if (!value) return '—';
+  const known = PLACES.find((item) => item.value === value);
+  return known ? known.label : value;
+}
+
+function hasWinnerPlace(participant) {
+  return Boolean(String(participant?.place || '').trim());
+}
+
 function participantRowHtml(p, index) {
   return `
       <tr>
         <td>${index}</td>
+        <td>${escapeHtml(formatPlaceLabel(p.place))}</td>
         <td>${escapeHtml(p.diocese || '—')}</td>
         <td>${escapeHtml(p.deanery || '—')}</td>
         <td>${escapeHtml(p.lastName || '—')}</td>
@@ -293,7 +306,6 @@ function participantRowHtml(p, index) {
         <td>${escapeHtml(p.workTitle || '—')}</td>
         <td>${escapeHtml(formatAddress(p))}</td>
         <td><span class="nomination-underline">${escapeHtml(p.nomination || '—')}</span></td>
-        <td>${escapeHtml(p.place || '—')}</td>
         <td>${escapeHtml(p.institutionName || '—')}</td>
         <td>${escapeHtml(p.teacherName || '—')}</td>
         <td>${escapeHtml(p.teacherPhone || '—')}</td>
@@ -585,9 +597,17 @@ function plural(n) {
 }
 
 function renderTable() {
-  countLabel.textContent = `${participants.length} ${plural(participants.length)}`;
+  const visible = winnersOnlyFilter ? participants.filter(hasWinnerPlace) : participants;
+  countLabel.textContent = winnersOnlyFilter
+    ? `${visible.length} ${plural(visible.length)} (победители)`
+    : `${participants.length} ${plural(participants.length)}`;
+
   document.querySelectorAll('[data-table-view]').forEach((btn) => {
     btn.classList.toggle('is-active', btn.dataset.tableView === tableViewMode);
+  });
+  document.querySelectorAll('[data-table-filter="winners"]').forEach((btn) => {
+    btn.classList.toggle('is-active', winnersOnlyFilter);
+    btn.setAttribute('aria-pressed', winnersOnlyFilter ? 'true' : 'false');
   });
 
   if (!participants.length) {
@@ -595,10 +615,16 @@ function renderTable() {
     return;
   }
 
+  if (!visible.length) {
+    participantsBody.innerHTML =
+      '<tr><td colspan="14">Нет участников с присвоенным местом.</td></tr>';
+    return;
+  }
+
   const groups =
     tableViewMode === 'nomination'
-      ? groupByNomination(participants)
-      : groupByDeanery(participants);
+      ? groupByNomination(visible)
+      : groupByDeanery(visible);
   const groupTitle =
     tableViewMode === 'nomination' ? 'Номинация' : 'Благочиние';
 
@@ -766,6 +792,13 @@ document.querySelectorAll('[data-table-view]').forEach((btn) => {
     const next = btn.dataset.tableView === 'nomination' ? 'nomination' : 'deanery';
     if (tableViewMode === next) return;
     tableViewMode = next;
+    renderTable();
+  });
+});
+
+document.querySelectorAll('[data-table-filter="winners"]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    winnersOnlyFilter = !winnersOnlyFilter;
     renderTable();
   });
 });
