@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260818-excel-skip-dup" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260818-delete-all" />
     <link rel="stylesheet" href="/css/site-header.css?v=20260817-compact-header" />
   </head>
   <body>
@@ -112,7 +112,12 @@
         </div>
 
         <div id="deaneryParticipants" class="deanery-participants" hidden>
-          <h3 id="deaneryParticipantsTitle">Заявленные участники</h3>
+          <div class="deanery-participants-head">
+            <h3 id="deaneryParticipantsTitle">Заявленные участники</h3>
+            <button type="button" class="btn btn-danger btn-delete-all" id="deleteAllParticipantsBtn">
+              Удалить всех участников
+            </button>
+          </div>
           <ul id="deaneryParticipantsList"></ul>
         </div>
 
@@ -563,6 +568,6 @@
 
     <script src="/js/vendor/xlsx.full.min.js?v=0.18.5"></script>
     <script src="/js/site-header.js?v=20260817-header"></script>
-    <script type="module" src="/js/form.js?v=20260818-excel-skip-dup"></script>
+    <script type="module" src="/js/form.js?v=20260818-delete-all"></script>
   </body>
 </html>

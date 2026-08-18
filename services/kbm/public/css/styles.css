@@ -824,6 +824,44 @@ input:disabled {
   background: rgba(255, 253, 248, 0.85);
 }
 
+.deanery-participants-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.85rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+}
+
+.deanery-participants-head h3 {
+  margin: 0;
+}
+
+.btn-delete-all {
+  padding: 0.45rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.btn-delete-all:hover {
+  filter: brightness(0.96);
+}
+
+.organizer-delete-all-slot {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  min-width: 0;
+}
+
+.organizer-delete-all-slot .btn-delete-all {
+  white-space: normal;
+  text-align: left;
+  line-height: 1.25;
+  max-width: 100%;
+}
+
 /* Permanent beige tint for Excel-imported cards (survives edits / reload). */
 .deanery-participants li.imported-from-excel,
 .organizer-winners > li.imported-from-excel {
@@ -858,7 +896,7 @@ textarea.field-import-issue:focus {
 }
 
 .deanery-participants h3 {
-  margin: 0 0 0.7rem;
+  margin: 0;
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 600;

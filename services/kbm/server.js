@@ -1634,6 +1634,55 @@ app.delete('/api/participants/:id', requireDeaneryAccessForParticipantId, (req, 
   res.json({ ok: true });
 });
 
+/** Удалить всех участников текущего благочиния (форма благочинного, с кодом доступа). */
+app.delete('/api/participants', requireDeaneryAccess, (req, res) => {
+  const deanery = readDeaneryFromRequest(req);
+  const list = readJson(DATA_FILE, []);
+  const removed = list.filter((item) => String(item.deanery || '').trim() === deanery);
+  if (!removed.length) {
+    return res.status(404).json({ error: 'Нет участников для удаления в этом благочинии' });
+  }
+  const next = list.filter((item) => String(item.deanery || '').trim() !== deanery);
+  invalidateDeaneryAcceptanceOnUserEdit(deanery, next);
+  writeJson(DATA_FILE, next);
+  pruneEmptyDeanerySubmissions(readJson(META_FILE, {}), next);
+  res.json({
+    ok: true,
+    deletedCount: removed.length,
+    deletedIds: removed.map((item) => item.id),
+    deanery,
+  });
+});
+
+/**
+ * Удалить участников из кабинета организатора.
+ * ?deanery=… — только это благочиние; без параметра — все участники.
+ */
+app.delete('/api/organizer/participants', requireOrganizerAuth, (req, res) => {
+  const deanery = String(req.query.deanery || '').trim();
+  const list = readJson(DATA_FILE, []);
+  const removed = deanery
+    ? list.filter((item) => String(item.deanery || '').trim() === deanery)
+    : [...list];
+  if (!removed.length) {
+    return res.status(404).json({
+      error: deanery
+        ? 'Нет участников для удаления в этом благочинии'
+        : 'Нет участников для удаления',
+    });
+  }
+  const removedIds = new Set(removed.map((item) => item.id));
+  const next = list.filter((item) => !removedIds.has(item.id));
+  writeJson(DATA_FILE, next);
+  pruneEmptyDeanerySubmissions(readJson(META_FILE, {}), next);
+  res.json({
+    ok: true,
+    deletedCount: removed.length,
+    deletedIds: removed.map((item) => item.id),
+    deanery: deanery || null,
+  });
+});
+
 app.get('/api/export.csv', (req, res) => {
   const meta = readJson(META_FILE, {});
   const submissions = meta.submissions || {};

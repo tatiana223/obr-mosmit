@@ -187,6 +187,7 @@ const nominationSelect = document.getElementById('nomination');
 const deaneryParticipants = document.getElementById('deaneryParticipants');
 const deaneryParticipantsTitle = document.getElementById('deaneryParticipantsTitle');
 const deaneryParticipantsList = document.getElementById('deaneryParticipantsList');
+const deleteAllParticipantsBtn = document.getElementById('deleteAllParticipantsBtn');
 const excelImportBlock = document.getElementById('excelImportBlock');
 const excelImportFile = document.getElementById('excelImportFile');
 const excelImportFileName = document.getElementById('excelImportFileName');
@@ -1304,11 +1305,19 @@ function renderDeaneryParticipants() {
     if (deaneryParticipantsTitle) {
       deaneryParticipantsTitle.textContent = 'Заявленные участники';
     }
+    if (deleteAllParticipantsBtn) {
+      deleteAllParticipantsBtn.hidden = true;
+      deleteAllParticipantsBtn.disabled = false;
+    }
     return;
   }
 
   if (deaneryParticipantsTitle) {
     deaneryParticipantsTitle.textContent = `Заявленные участники (${list.length})`;
+  }
+  if (deleteAllParticipantsBtn) {
+    deleteAllParticipantsBtn.hidden = false;
+    deleteAllParticipantsBtn.disabled = false;
   }
 
   deaneryParticipantsList.innerHTML = list
@@ -2702,6 +2711,56 @@ deaneryParticipantsList.addEventListener('click', async (event) => {
   if (!participant) return;
   openOverlayForEdit(participant);
 });
+
+if (deleteAllParticipantsBtn) {
+  deleteAllParticipantsBtn.addEventListener('click', async () => {
+    const deanery = normalizeDeanery(deanerySelect.value);
+    const list = getParticipantsForDeanery(deanery);
+    if (!deanery || !list.length) return;
+
+    const count = list.length;
+    const warning =
+      count === 1
+        ? `Удалить единственного участника благочиния «${deanery}»? Это действие нельзя отменить.`
+        : `Удалить всех участников благочиния «${deanery}» (${count})?\n\nБудут удалены все карточки этой заявки. Это действие нельзя отменить.`;
+    if (!confirm(warning)) return;
+
+    deleteAllParticipantsBtn.disabled = true;
+    try {
+      const response = await fetch('/api/participants', {
+        method: 'DELETE',
+        headers: deaneryAuthHeaders(deanery, { json: false }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Не удалось удалить участников');
+
+      const deletedIds = new Set(
+        Array.isArray(result.deletedIds) ? result.deletedIds : list.map((item) => item.id)
+      );
+      participantsCache = participantsCache.filter((item) => !deletedIds.has(item.id));
+      for (const id of deletedIds) {
+        importHighlights.delete(id);
+      }
+      if (editingId && deletedIds.has(editingId)) {
+        resetWorkForm();
+        closeOverlay();
+      }
+      renderDeaneryParticipants();
+      syncParticipantIndex();
+      await syncCertificateButton();
+      const deletedCount = Number(result.deletedCount) || deletedIds.size;
+      showStatus(
+        deletedCount === 1
+          ? 'Участник удалён.'
+          : `Удалены все участники благочиния (${deletedCount}).`
+      );
+    } catch (error) {
+      showStatus(error.message, true);
+      deleteAllParticipantsBtn.disabled = false;
+      await refreshParticipantsCache();
+    }
+  });
+}
 
 nextParticipantBtn.addEventListener('click', () => {
   resetWorkForm();
