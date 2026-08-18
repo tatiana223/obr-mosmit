@@ -491,6 +491,18 @@ app.post('/api/submit-review', requireDeaneryAccess, (req, res) => {
     });
   }
 
+  const unconfirmedExcel = participants.filter(
+    (item) => item.importedFromExcel && !item.excelReviewConfirmed
+  );
+  if (unconfirmedExcel.length) {
+    const surnames = unconfirmedExcel
+      .map((item) => String(item.lastName || '').trim())
+      .filter(Boolean);
+    return res.status(400).json({
+      error: `Сначала откройте и сохраните карточки участников, импортированных из Excel:\n• ${surnames.join('\n• ')}`,
+    });
+  }
+
   const quotaRules = [
     {
       key: 'icon',
@@ -1472,6 +1484,11 @@ function normalizeParticipant(body, existing = null) {
       awardNomination: String(body.awardNomination ?? existing?.awardNomination ?? '').trim(),
       approved: Boolean(
         body.approved !== undefined ? body.approved : existing?.approved
+      ),
+      // Excel import markers: once set, keep forever across edits
+      importedFromExcel: Boolean(existing?.importedFromExcel || body.importedFromExcel),
+      excelReviewConfirmed: Boolean(
+        existing?.excelReviewConfirmed || body.excelReviewConfirmed
       ),
     },
   };

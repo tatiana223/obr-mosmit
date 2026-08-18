@@ -1313,20 +1313,28 @@ function renderDeaneryParticipants() {
     .map((item, index) => {
       const review = importHighlights.get(item.id);
       const needsReview = Boolean(review?.fields?.length);
+      const fromExcel = Boolean(item.importedFromExcel);
+      const editLabel = participantEditButtonLabel(item);
+      const cardClasses = [
+        fromExcel ? 'imported-from-excel' : '',
+        needsReview ? 'needs-review' : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
       const reviewText = needsReview
         ? `<span class="review-hint"><strong>Проверьте:</strong> ${escapeHtml(
             (review.reasons || []).join('; ') || 'поля после импорта Excel'
           )}</span>`
         : '';
       return `
-      <li data-id="${escapeHtml(item.id)}" class="${needsReview ? 'needs-review' : ''}">
+      <li data-id="${escapeHtml(item.id)}" class="${cardClasses}">
         <div class="participant-info">
           <span class="participant-name">${index + 1}. ${escapeHtml(item.lastName)} ${escapeHtml(item.firstName)}</span>
           <span class="participant-meta">${escapeHtml(String(item.age ?? '—'))} лет · ${escapeHtml(item.workTitle)} · Номинация: <span class="nomination-underline">${escapeHtml(item.nomination)}</span></span>
           ${reviewText}
         </div>
         <div class="participant-actions">
-          <button type="button" class="btn-edit" data-edit="${escapeHtml(item.id)}">Исправить данные</button>
+          <button type="button" class="btn-edit" data-edit="${escapeHtml(item.id)}">${editLabel}</button>
           <button
             type="button"
             class="participant-delete-btn"
@@ -1759,10 +1767,21 @@ function autofillByIdentityMatch() {
 
 function openNoticeOverlay(message) {
   if (!noticeOverlay || !noticeLead) return;
+  noticeLead.style.whiteSpace = 'pre-line';
   noticeLead.textContent = message;
   noticeOverlay.classList.add('open');
   noticeOverlay.setAttribute('aria-hidden', 'false');
   closeNoticeActionBtn?.focus();
+}
+
+function participantEditButtonLabel(item) {
+  return item?.importedFromExcel && !item?.excelReviewConfirmed
+    ? 'Исправить данные'
+    : 'Изменить данные';
+}
+
+function unconfirmedExcelParticipants(list) {
+  return (list || []).filter((item) => item.importedFromExcel && !item.excelReviewConfirmed);
 }
 
 function closeNoticeOverlay() {
@@ -2122,7 +2141,7 @@ excelImportBtn?.addEventListener('click', async () => {
     const failed = [];
 
     for (const entry of parsed.participants) {
-      const body = { ...entry.payload };
+      const body = { ...entry.payload, importedFromExcel: true };
       delete body.age;
       delete body._addressIncomplete;
       delete body._rowNumber;
@@ -2222,6 +2241,17 @@ submitReviewBtn?.addEventListener('click', () => {
   const list = getParticipantsForDeanery(deanery);
   if (list.length < 3) {
     showStatus('Для отправки на проверку нужно не менее трёх участников.', true);
+    return;
+  }
+
+  const unconfirmed = unconfirmedExcelParticipants(list);
+  if (unconfirmed.length) {
+    const surnames = unconfirmed
+      .map((item) => String(item.lastName || '').trim())
+      .filter(Boolean);
+    openNoticeOverlay(
+      `Перед отправкой на проверку откройте и сохраните карточки участников, импортированных из Excel:\n\n• ${surnames.join('\n• ')}`
+    );
     return;
   }
 
@@ -2537,8 +2567,16 @@ workForm.addEventListener('submit', async (event) => {
     idDocumentConfirm: data.get('idDocumentConfirm') === 'on',
   };
 
+  const isEdit = Boolean(editingId);
+  if (isEdit) {
+    const existing = participantsCache.find((item) => item.id === editingId);
+    if (existing?.importedFromExcel) {
+      payload.importedFromExcel = true;
+      payload.excelReviewConfirmed = true;
+    }
+  }
+
   try {
-    const isEdit = Boolean(editingId);
     const response = await fetch(isEdit ? `/api/participants/${editingId}` : '/api/participants', {
       method: isEdit ? 'PUT' : 'POST',
       headers: deaneryAuthHeaders(payload.deanery),
