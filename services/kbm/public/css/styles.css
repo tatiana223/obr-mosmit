@@ -808,6 +808,10 @@ input:disabled {
   color: #9b2c2c;
 }
 
+.excel-import-status.is-warn {
+  color: #8a5a12;
+}
+
 .excel-import-status.is-ok {
   color: #2f5d4a;
 }

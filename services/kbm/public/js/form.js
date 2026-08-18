@@ -1,5 +1,6 @@
 import {
   collectImportFieldIssues,
+  findExistingImportDuplicate,
   parseExcelApplicationFile,
 } from './excel-import.js';
 
@@ -1227,11 +1228,12 @@ function syncExcelImportVisibility() {
   excelImportBlock.hidden = !ready;
 }
 
-function showExcelImportStatus(message, { error = false, ok = false } = {}) {
+function showExcelImportStatus(message, { error = false, ok = false, warn = false } = {}) {
   if (!excelImportStatus) return;
   excelImportStatus.textContent = message || '';
-  excelImportStatus.classList.toggle('is-error', Boolean(message) && error);
-  excelImportStatus.classList.toggle('is-ok', Boolean(message) && ok && !error);
+  excelImportStatus.classList.toggle('is-error', Boolean(message) && error && !warn);
+  excelImportStatus.classList.toggle('is-warn', Boolean(message) && warn && !error);
+  excelImportStatus.classList.toggle('is-ok', Boolean(message) && ok && !error && !warn);
 }
 
 function clearImportFieldHighlights() {
@@ -2139,9 +2141,19 @@ excelImportBtn?.addEventListener('click', async () => {
     const parsed = await parseExcelApplicationFile(file, { diocese, deanery });
     let saved = 0;
     const failed = [];
+    const duplicates = [];
+    const existingForDeanery = () => getParticipantsForDeanery(deanery);
 
     for (const entry of parsed.participants) {
       const body = { ...entry.payload, importedFromExcel: true };
+      const displayName =
+        `${body.lastName || ''} ${body.firstName || ''}`.trim() || 'без имени';
+
+      if (findExistingImportDuplicate(body, existingForDeanery(), COMPETITION_YEAR)) {
+        duplicates.push({ name: displayName });
+        continue;
+      }
+
       delete body.age;
       delete body._addressIncomplete;
       delete body._rowNumber;
@@ -2164,7 +2176,7 @@ excelImportBtn?.addEventListener('click', async () => {
         saved += 1;
       } catch (error) {
         failed.push({
-          name: `${body.lastName || ''} ${body.firstName || ''}`.trim() || 'без имени',
+          name: displayName,
           reason: error.message || 'ошибка',
         });
       }
@@ -2174,6 +2186,12 @@ excelImportBtn?.addEventListener('click', async () => {
     syncParticipantIndex();
     await syncCertificateButton();
 
+    const duplicateNames = duplicates.map((item) => item.name).filter(Boolean);
+    const duplicatePreview =
+      duplicateNames.length <= 5
+        ? duplicateNames.join(', ')
+        : `${duplicateNames.slice(0, 5).join(', ')} и ещё ${duplicateNames.length - 5}`;
+
     const skippedParts = [];
     if (parsed.skipped?.length) {
       skippedParts.push(`пропущено при разборе: ${parsed.skipped.length}`);
@@ -2182,8 +2200,27 @@ excelImportBtn?.addEventListener('click', async () => {
       skippedParts.push(`не сохранено: ${failed.length}`);
     }
 
+    if (!saved && duplicates.length && !failed.length && !(parsed.skipped?.length)) {
+      const warnMessage = `Все строки уже есть среди участников этого благочиния — ничего не добавлено. Совпадения (${duplicates.length}): ${duplicatePreview}.`;
+      showExcelImportStatus(warnMessage, { warn: true });
+      showStatus(warnMessage, true);
+      openNoticeOverlay(
+        `Предупреждение: дубликаты при импорте Excel\n\nНичего не добавлено — полное совпадение по фамилии, имени, возрасту, номинации и названию работы:\n${duplicateNames
+          .map((name) => `• ${name}`)
+          .join('\n')}`
+      );
+      return;
+    }
+
     if (!saved) {
-      const detail = [...(parsed.skipped || []), ...failed]
+      const detail = [
+        ...(parsed.skipped || []),
+        ...failed,
+        ...duplicates.map((d) => ({
+          name: d.name,
+          reason: 'уже есть в благочинии',
+        })),
+      ]
         .slice(0, 3)
         .map((item) => `${item.name || `стр. ${item.row}`}: ${item.reason}`)
         .join('; ');
@@ -2199,12 +2236,27 @@ excelImportBtn?.addEventListener('click', async () => {
     ).length;
 
     let message = `Добавлено участников: ${saved}`;
+    if (duplicates.length) {
+      message += `. Предупреждение: пропущено как уже существующие: ${duplicates.length}`;
+      if (duplicatePreview) message += ` (${duplicatePreview})`;
+    }
     if (skippedParts.length) message += ` (${skippedParts.join(', ')})`;
     if (reviewCount) {
       message += `. Подсвечено для проверки: ${reviewCount} (особенно названия учреждений / юрлиц).`;
     }
-    showExcelImportStatus(message, { ok: true });
-    showStatus(message);
+
+    if (duplicates.length) {
+      showExcelImportStatus(message, { warn: true });
+      showStatus(message, true);
+      openNoticeOverlay(
+        `Предупреждение: пропущены дубликаты (${duplicates.length})\n\nЭти участники уже есть в благочинии (фамилия, имя, возраст, номинация, название работы):\n${duplicateNames
+          .map((name) => `• ${name}`)
+          .join('\n')}\n\nДобавлено новых: ${saved}.`
+      );
+    } else {
+      showExcelImportStatus(message, { ok: true });
+      showStatus(message);
+    }
   } catch (error) {
     showExcelImportStatus(error.message || 'Не удалось импортировать файл.', { error: true });
   } finally {
