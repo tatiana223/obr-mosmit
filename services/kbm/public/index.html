@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260818-excel-import" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260818-institution-autoresize" />
     <link rel="stylesheet" href="/css/site-header.css?v=20260817-compact-header" />
   </head>
   <body>
@@ -301,13 +301,14 @@
             <label class="institution-name-field">
               <span id="institutionNameLabel" class="field-title">Название учреждения</span>
               <div class="suggest-wrap">
-                <input
+                <textarea
                   id="institutionName"
                   name="institutionName"
+                  rows="2"
                   autocomplete="off"
                   placeholder="Сначала выберите тип учреждения"
                   disabled
-                />
+                ></textarea>
                 <ul id="institutionSuggest" class="suggest-list" hidden></ul>
               </div>
               <span id="institutionNameNote" class="field-note is-hidden">
@@ -563,6 +564,6 @@
 
     <script src="/js/vendor/xlsx.full.min.js?v=0.18.5"></script>
     <script src="/js/site-header.js?v=20260817-header"></script>
-    <script type="module" src="/js/form.js?v=20260818-excel-import"></script>
+    <script type="module" src="/js/form.js?v=20260818-institution-autoresize"></script>
   </body>
 </html>

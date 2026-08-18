@@ -109,6 +109,36 @@ const institutionName = document.getElementById('institutionName');
 const institutionNameLabel = document.getElementById('institutionNameLabel');
 const institutionNameNote = document.getElementById('institutionNameNote');
 const institutionSuggest = document.getElementById('institutionSuggest');
+
+const INSTITUTION_NAME_MAX_HEIGHT_PX = 224; // ~14rem
+
+/** Высота textarea/select по scrollHeight (без обрезки типичных ЕГРЮЛ-названий). */
+function autoResizeInstitutionField(el, { maxHeightPx = INSTITUTION_NAME_MAX_HEIGHT_PX } = {}) {
+  if (!el) return;
+  if (el.tagName === 'TEXTAREA') {
+    el.style.height = 'auto';
+    const needed = el.scrollHeight;
+    const next = Math.min(Math.max(needed, 0), maxHeightPx);
+    el.style.height = `${next}px`;
+    el.style.overflowY = needed > maxHeightPx ? 'auto' : 'hidden';
+    return;
+  }
+  // select: подстроить под перенос длинной подписи на узких экранах
+  el.style.height = 'auto';
+  el.style.height = `${Math.max(el.scrollHeight, 48)}px`;
+}
+
+function autoResizeInstitutionFields() {
+  autoResizeInstitutionField(institutionType, { maxHeightPx: 96 });
+  autoResizeInstitutionField(institutionName);
+}
+
+function scheduleInstitutionFieldsResize() {
+  autoResizeInstitutionFields();
+  requestAnimationFrame(() => {
+    autoResizeInstitutionFields();
+  });
+}
 const openOverlayBtn = document.getElementById('openOverlayBtn');
 const downloadCsvBtn = document.getElementById('downloadCsvBtn');
 const submitReviewBtn = document.getElementById('submitReviewBtn');
@@ -1456,6 +1486,7 @@ function selectSuggest(item) {
   egrulSelected = true;
   hideSuggest();
   institutionName?.classList.remove('field-import-issue');
+  scheduleInstitutionFieldsResize();
   if (editingId && importHighlights.has(editingId)) {
     const entry = importHighlights.get(editingId);
     entry.fields = entry.fields.filter((field) => field !== 'institutionName');
@@ -1568,6 +1599,7 @@ function updateInstitutionNameField({ clearValue = true } = {}) {
           ? 'Не заполняется'
           : '';
   institutionName.autocomplete = isEgrul ? 'off' : 'organization';
+  scheduleInstitutionFieldsResize();
 }
 
 function setOverlayMode(isEdit) {
@@ -1612,6 +1644,7 @@ function applyParticipantFields(participant, { mode = 'full' } = {}) {
   updateInstitutionNameField({ clearValue: false });
   institutionName.value = participant.institutionName || '';
   egrulSelected = usesEgrul(institutionType.value) && Boolean(institutionName.value);
+  scheduleInstitutionFieldsResize();
 
   workForm.teacherName.value = capitalizeProperRu(participant.teacherName || '');
   teacherPhoneInput.value = formatPhoneInput(participant.teacherPhone || '');
@@ -1761,6 +1794,7 @@ function openOverlayForCreate() {
   overlayLead.textContent = `Участник №${participantIndex} · ${draft.diocese} · ${draft.deanery}`;
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden', 'false');
+  scheduleInstitutionFieldsResize();
   birthYearSelect.focus();
 }
 
@@ -1773,6 +1807,7 @@ function openOverlayForEdit(participant) {
   overlayLead.textContent = `${participant.lastName} ${participant.firstName} · ${participant.diocese || draft.diocese} · ${participant.deanery}`;
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden', 'false');
+  scheduleInstitutionFieldsResize();
   workForm.lastName.focus();
 }
 
@@ -1865,7 +1900,10 @@ birthYearSelect.addEventListener('change', () => {
   autofillByIdentityMatch();
   updateAutofillManualHighlights();
 });
-institutionType.addEventListener('change', updateInstitutionNameField);
+institutionType.addEventListener('change', () => {
+  updateInstitutionNameField();
+  scheduleInstitutionFieldsResize();
+});
 
 const workTitleInput = document.getElementById('workTitle');
 workTitleInput?.addEventListener('input', () => {
@@ -1905,12 +1943,29 @@ identityAutofillInputs.forEach((input) => {
 });
 
 institutionName.addEventListener('input', () => {
+  if (/\r?\n/.test(institutionName.value)) {
+    const pos = institutionName.selectionStart;
+    institutionName.value = institutionName.value.replace(/\r?\n/g, ' ');
+    if (typeof pos === 'number') {
+      try {
+        institutionName.setSelectionRange(pos, pos);
+      } catch {
+        // ignore
+      }
+    }
+  }
+  scheduleInstitutionFieldsResize();
+  if (!institutionSuggest.hidden) positionInstitutionSuggest();
   if (!usesEgrul()) return;
   egrulSelected = false;
   scheduleEgrulSearch();
 });
 
 institutionName.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+  }
+
   if (institutionSuggest.hidden || !suggestItems.length) return;
 
   if (event.key === 'ArrowDown') {
@@ -1920,7 +1975,6 @@ institutionName.addEventListener('keydown', (event) => {
     event.preventDefault();
     activeSuggestIndex = Math.max(activeSuggestIndex - 1, 0);
   } else if (event.key === 'Enter' && activeSuggestIndex >= 0) {
-    event.preventDefault();
     selectSuggest(suggestItems[activeSuggestIndex]);
     return;
   } else if (event.key === 'Escape') {
@@ -1958,7 +2012,10 @@ institutionName.addEventListener('blur', () => {
   }, 220);
 });
 
-window.addEventListener('resize', positionInstitutionSuggest);
+window.addEventListener('resize', () => {
+  scheduleInstitutionFieldsResize();
+  positionInstitutionSuggest();
+});
 document.addEventListener(
   'scroll',
   () => {
