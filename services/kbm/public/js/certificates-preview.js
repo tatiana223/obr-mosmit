@@ -326,11 +326,20 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') closePreview();
 });
 
-const CERTIFICATE_BG_URL = () => `${window.__KBM_BASE__ || ''}/assets/certificate-bg.jpg?v=5`;
+/** Browser URL for <img> — needs __KBM_BASE__ (Image is not fetch-patched). */
+const CERTIFICATE_BG_BROWSER_URL = () =>
+  `${window.__KBM_BASE__ || ''}/assets/certificate-bg.jpg?v=5`;
+
+/**
+ * Root-absolute path for fetch(). sendHtml boot already prepends BASE_PATH to
+ * paths starting with "/", so including __KBM_BASE__ here double-prefixes under
+ * embed (/konkursy/.../konkursy/.../assets/...) and 404s the diploma JPEG.
+ */
+const CERTIFICATE_BG_FETCH_PATH = '/assets/certificate-bg.jpg?v=5';
 
 function waitForBackgroundImage() {
   const img = new Image();
-  img.src = CERTIFICATE_BG_URL();
+  img.src = CERTIFICATE_BG_BROWSER_URL();
   if (img.complete) return Promise.resolve();
   return new Promise((resolve) => {
     img.onload = () => resolve();
@@ -340,7 +349,7 @@ function waitForBackgroundImage() {
 
 /** Load original diploma JPEG as data URL for sharp PDF embedding (no html2canvas resample). */
 async function loadCertificateBackgroundDataUrl() {
-  const response = await fetch(CERTIFICATE_BG_URL(), { cache: 'force-cache' });
+  const response = await fetch(CERTIFICATE_BG_FETCH_PATH, { cache: 'force-cache' });
   if (!response.ok) throw new Error('Не удалось загрузить фон диплома.');
   const blob = await response.blob();
   return new Promise((resolve, reject) => {
