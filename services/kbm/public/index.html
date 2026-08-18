@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260817-access" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260818-municipal" />
     <link rel="stylesheet" href="/css/site-header.css?v=20260817-compact-header" />
   </head>
   <body>
@@ -235,10 +235,33 @@
                 Название субъекта РФ (республика, область)
                 <input name="rfSubject" value="Московская область" required />
               </label>
-              <label>
-                Муниципальное образование
-                <input name="municipalFormation" required />
-              </label>
+              <div class="municipal-formation-field">
+                <div class="municipal-formation-heading">
+                  <span class="field-title" id="municipalFormationTitle">Муниципальное образование</span>
+                  <div
+                    class="municipal-type-toggles"
+                    role="group"
+                    aria-label="Тип муниципального образования"
+                  >
+                    <label class="municipal-type-option" for="municipalTypeGo">
+                      <input type="checkbox" id="municipalTypeGo" value="г.о." />
+                      <span class="municipal-type-abbr">г.о.</span>
+                      <span class="municipal-type-hint">городской округ</span>
+                    </label>
+                    <label class="municipal-type-option" for="municipalTypeMo">
+                      <input type="checkbox" id="municipalTypeMo" value="м.о." />
+                      <span class="municipal-type-abbr">м.о.</span>
+                      <span class="municipal-type-hint">муниципальный округ</span>
+                    </label>
+                  </div>
+                </div>
+                <input
+                  name="municipalFormation"
+                  id="municipalFormation"
+                  aria-labelledby="municipalFormationTitle"
+                  required
+                />
+              </div>
               <label>
                 Город (село, деревня)
                 <input name="locality" required />
@@ -518,6 +541,6 @@
     </div>
 
     <script src="/js/site-header.js?v=20260817-header"></script>
-    <script type="module" src="/js/form.js?v=20260818-delete-header"></script>
+    <script type="module" src="/js/form.js?v=20260818-municipal"></script>
   </body>
 </html>

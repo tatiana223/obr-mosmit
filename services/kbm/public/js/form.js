@@ -438,6 +438,15 @@ function titleCaseRuWord(word) {
  */
 function capitalizeProperRu(value) {
   let text = String(value ?? '');
+  const protectedParts = [];
+
+  // г.о. / м.о. (и варианты с пробелами / регистром) — целиком строчными
+  text = text.replace(/(^|[\s(])([ГгМм])\s*\.\s*[Оо]\s*\./g, (match, lead, letter) => {
+    const prefix = letter.toLocaleLowerCase('ru-RU') === 'м' ? 'м.о.' : 'г.о.';
+    const token = `\u0000${protectedParts.length}\u0000`;
+    protectedParts.push(prefix);
+    return `${lead}${token}`;
+  });
 
   // Сокращения населённых пунктов — строчными
   text = text
@@ -452,6 +461,10 @@ function capitalizeProperRu(value) {
       return word.toLocaleLowerCase('ru-RU');
     }
     return titleCaseRuWord(word);
+  });
+
+  protectedParts.forEach((prefix, index) => {
+    text = text.replace(`\u0000${index}\u0000`, prefix);
   });
 
   return text;
@@ -486,6 +499,83 @@ function bindAutoCapitalize(input) {
   workForm?.querySelector('[name="municipalFormation"]'),
   workForm?.querySelector('[name="locality"]'),
 ].forEach(bindAutoCapitalize);
+
+const MUNICIPAL_PREFIX_GO = 'г.о.';
+const MUNICIPAL_PREFIX_MO = 'м.о.';
+const MUNICIPAL_PREFIX_RE = /^(г\s*\.\s*о\s*\.|м\s*\.\s*о\s*\.)\s*/i;
+const municipalFormationInput = workForm?.querySelector('[name="municipalFormation"]');
+const municipalTypeGo = document.getElementById('municipalTypeGo');
+const municipalTypeMo = document.getElementById('municipalTypeMo');
+
+function normalizeMunicipalPrefix(raw) {
+  const compact = String(raw || '')
+    .replace(/\s+/g, '')
+    .toLocaleLowerCase('ru-RU');
+  if (compact === 'г.о.') return MUNICIPAL_PREFIX_GO;
+  if (compact === 'м.о.') return MUNICIPAL_PREFIX_MO;
+  return null;
+}
+
+function parseMunicipalFormationValue(value) {
+  const text = String(value ?? '');
+  const match = text.match(MUNICIPAL_PREFIX_RE);
+  if (!match) return { prefix: null, rest: text };
+  return {
+    prefix: normalizeMunicipalPrefix(match[1]),
+    rest: text.slice(match[0].length),
+  };
+}
+
+function setMunicipalFormationValue(prefix, rest) {
+  if (!municipalFormationInput) return;
+  const name = String(rest ?? '');
+  let next = '';
+  if (prefix) {
+    next = name.trimStart() ? `${prefix} ${name.trimStart()}` : `${prefix} `;
+  } else {
+    next = name;
+  }
+  municipalFormationInput.value = capitalizeProperRu(next);
+}
+
+function syncMunicipalTypeCheckboxesFromInput() {
+  if (!municipalTypeGo || !municipalTypeMo || !municipalFormationInput) return;
+  const { prefix } = parseMunicipalFormationValue(municipalFormationInput.value);
+  municipalTypeGo.checked = prefix === MUNICIPAL_PREFIX_GO;
+  municipalTypeMo.checked = prefix === MUNICIPAL_PREFIX_MO;
+}
+
+function onMunicipalTypeToggle(changed) {
+  if (!municipalTypeGo || !municipalTypeMo || !municipalFormationInput) return;
+  const { rest } = parseMunicipalFormationValue(municipalFormationInput.value);
+
+  if (changed === municipalTypeGo && municipalTypeGo.checked) {
+    municipalTypeMo.checked = false;
+    setMunicipalFormationValue(MUNICIPAL_PREFIX_GO, rest);
+  } else if (changed === municipalTypeMo && municipalTypeMo.checked) {
+    municipalTypeGo.checked = false;
+    setMunicipalFormationValue(MUNICIPAL_PREFIX_MO, rest);
+  } else {
+    setMunicipalFormationValue(null, rest);
+  }
+
+  syncMunicipalTypeCheckboxesFromInput();
+  municipalFormationInput.dispatchEvent(new Event('input', { bubbles: true }));
+  municipalFormationInput.focus();
+  try {
+    const len = municipalFormationInput.value.length;
+    municipalFormationInput.setSelectionRange(len, len);
+  } catch {
+    // ignore
+  }
+}
+
+if (municipalTypeGo && municipalTypeMo && municipalFormationInput) {
+  municipalTypeGo.addEventListener('change', () => onMunicipalTypeToggle(municipalTypeGo));
+  municipalTypeMo.addEventListener('change', () => onMunicipalTypeToggle(municipalTypeMo));
+  municipalFormationInput.addEventListener('input', syncMunicipalTypeCheckboxesFromInput);
+  syncMunicipalTypeCheckboxesFromInput();
+}
 
 function uniqueValues(values) {
   const seen = new Set();
@@ -1397,6 +1487,7 @@ function applyParticipantFields(participant, { mode = 'full' } = {}) {
   workForm.federalDistrict.value = participant.federalDistrict || DEFAULT_FEDERAL_DISTRICT;
   workForm.rfSubject.value = capitalizeProperRu(participant.rfSubject || DEFAULT_RF_SUBJECT);
   workForm.municipalFormation.value = capitalizeProperRu(participant.municipalFormation || '');
+  syncMunicipalTypeCheckboxesFromInput();
   workForm.locality.value = capitalizeProperRu(participant.locality || '');
   institutionType.value = participant.institutionType || '';
   updateInstitutionNameField({ clearValue: false });
