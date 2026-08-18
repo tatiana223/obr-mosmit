@@ -489,6 +489,12 @@ function bindAutoCapitalize(input) {
   });
 }
 
+function applyFieldCapitalize(input) {
+  if (!input) return;
+  const next = capitalizeProperRu(input.value);
+  if (next !== input.value) input.value = next;
+}
+
 [
   document.getElementById('lastName'),
   document.getElementById('firstName'),
@@ -496,7 +502,7 @@ function bindAutoCapitalize(input) {
   document.getElementById('representativeName'),
   document.getElementById('responsibleFullName'),
   workForm?.querySelector('[name="rfSubject"]'),
-  workForm?.querySelector('[name="municipalFormation"]'),
+  // municipalFormation: format on blur/save only — live input mangles г.о./м.о. mid-typing
   workForm?.querySelector('[name="locality"]'),
 ].forEach(bindAutoCapitalize);
 
@@ -568,6 +574,13 @@ function onMunicipalTypeToggle(changed) {
   } catch {
     // ignore
   }
+}
+
+if (municipalFormationInput) {
+  municipalFormationInput.addEventListener('blur', () => {
+    applyFieldCapitalize(municipalFormationInput);
+    syncMunicipalTypeCheckboxesFromInput();
+  });
 }
 
 if (municipalTypeGo && municipalTypeMo && municipalFormationInput) {
@@ -2220,6 +2233,9 @@ workForm.addEventListener('submit', async (event) => {
     return;
   }
 
+  applyFieldCapitalize(municipalFormationInput);
+  syncMunicipalTypeCheckboxesFromInput();
+
   const data = new FormData(workForm);
   const teacherPhone = String(teacherPhoneInput.value || '').trim();
   const representativePhone = String(representativePhoneInput.value || '').trim();
@@ -2239,7 +2255,7 @@ workForm.addEventListener('submit', async (event) => {
     workTitle: formatWorkTitle(data.get('workTitle')),
     federalDistrict: data.get('federalDistrict'),
     rfSubject: data.get('rfSubject'),
-    municipalFormation: data.get('municipalFormation'),
+    municipalFormation: capitalizeProperRu(data.get('municipalFormation')),
     locality: data.get('locality'),
     nomination,
     institutionName: type === 'Самостоятельное участие' ? '' : nameValue,
