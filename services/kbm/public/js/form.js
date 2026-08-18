@@ -113,25 +113,26 @@ const institutionSuggest = document.getElementById('institutionSuggest');
 
 const INSTITUTION_NAME_MAX_HEIGHT_PX = 224; // ~14rem
 
-/** Высота textarea/select по scrollHeight (без обрезки типичных ЕГРЮЛ-названий). */
-function autoResizeInstitutionField(el, { maxHeightPx = INSTITUTION_NAME_MAX_HEIGHT_PX } = {}) {
-  if (!el) return;
-  if (el.tagName === 'TEXTAREA') {
-    el.style.height = 'auto';
-    const needed = el.scrollHeight;
-    const next = Math.min(Math.max(needed, 0), maxHeightPx);
-    el.style.height = `${next}px`;
-    el.style.overflowY = needed > maxHeightPx ? 'auto' : 'hidden';
-    return;
-  }
-  // select: подстроить под перенос длинной подписи на узких экранах
-  el.style.height = 'auto';
-  el.style.height = `${Math.max(el.scrollHeight, 48)}px`;
+/** Высота названия по scrollHeight (без обрезки типичных ЕГРЮЛ-названий). */
+function autoResizeInstitutionName() {
+  if (!institutionName) return;
+  institutionName.style.height = 'auto';
+  const needed = institutionName.scrollHeight;
+  const next = Math.min(Math.max(needed, 0), INSTITUTION_NAME_MAX_HEIGHT_PX);
+  institutionName.style.height = `${next}px`;
+  institutionName.style.overflowY = needed > INSTITUTION_NAME_MAX_HEIGHT_PX ? 'auto' : 'hidden';
+}
+
+/** Тип учреждения — та же высота, что у названия (растёт вместе с текстом юрлица). */
+function matchInstitutionTypeHeight() {
+  if (!institutionType || !institutionName) return;
+  const h = Math.round(institutionName.getBoundingClientRect().height);
+  if (h > 0) institutionType.style.height = `${h}px`;
 }
 
 function autoResizeInstitutionFields() {
-  autoResizeInstitutionField(institutionType, { maxHeightPx: 96 });
-  autoResizeInstitutionField(institutionName);
+  autoResizeInstitutionName();
+  matchInstitutionTypeHeight();
 }
 
 function scheduleInstitutionFieldsResize() {
