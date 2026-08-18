@@ -309,7 +309,6 @@ input[readonly]:focus {
 
 .field-note {
   display: block;
-  min-height: 2.1em;
   margin-top: 0.35rem;
   color: var(--ink-soft);
   font-size: 0.78rem;
@@ -321,8 +320,9 @@ input[readonly]:focus {
   color: var(--azure);
 }
 
+/* Не резервируем место под подсказку ЕГРЮЛ, когда она скрыта */
 .field-note.is-hidden {
-  visibility: hidden;
+  display: none;
 }
 
 /* Временная подсказка ожидания ЕГРЮЛ — не резервирует место, когда скрыта */
