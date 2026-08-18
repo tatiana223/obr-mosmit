@@ -326,14 +326,28 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') closePreview();
 });
 
+const CERTIFICATE_BG_URL = () => `${window.__KBM_BASE__ || ''}/assets/certificate-bg.jpg?v=5`;
+
 function waitForBackgroundImage() {
-  const base = window.__KBM_BASE__ || '';
   const img = new Image();
-  img.src = `${base}/assets/certificate-bg.jpg?v=5`;
+  img.src = CERTIFICATE_BG_URL();
   if (img.complete) return Promise.resolve();
   return new Promise((resolve) => {
     img.onload = () => resolve();
     img.onerror = () => resolve();
+  });
+}
+
+/** Load original diploma JPEG as data URL for sharp PDF embedding (no html2canvas resample). */
+async function loadCertificateBackgroundDataUrl() {
+  const response = await fetch(CERTIFICATE_BG_URL(), { cache: 'force-cache' });
+  if (!response.ok) throw new Error('Не удалось загрузить фон диплома.');
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Не удалось прочитать фон диплома.'));
+    reader.readAsDataURL(blob);
   });
 }
 
@@ -360,9 +374,12 @@ async function downloadPdf() {
     const jsPDF = jspdfModule.jsPDF || jspdfModule.default?.jsPDF || jspdfModule.default;
     if (!jsPDF) throw new Error('Не удалось загрузить библиотеку PDF.');
 
-    await waitForBackgroundImage();
-    printRoot.classList.add('pdf-capture');
-    // Allow layout/paint before capture
+    // Sharp path: embed original 6300×8910 JPEG (blue signature is baked in) once,
+    // then overlay a transparent text-only html2canvas layer. Full-page html2canvas
+    // was still muddy after ~300 DPI because it downsampled the BG via CSS.
+    const [bgDataUrl] = await Promise.all([loadCertificateBackgroundDataUrl(), waitForBackgroundImage()]);
+
+    printRoot.classList.add('pdf-capture', 'pdf-capture-text');
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     const nodes = [...printRoot.querySelectorAll('.certificate')];
@@ -372,20 +389,23 @@ async function downloadPdf() {
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
 
-    // ~300 DPI from CSS px (96dpi): keeps fine blue ink in the JPG template crisp.
-    // PNG (not JPEG): JPEG chroma loss muddies thin blue signature strokes.
-    const captureScale = 300 / 96;
+    // Text layer ~300 DPI is enough for solid black type; BG stays native JPEG.
+    const textCaptureScale = 300 / 96;
     for (let i = 0; i < nodes.length; i += 1) {
+      if (i > 0) pdf.addPage();
+
+      // Alias reuses one embedded JPEG across pages (signature stays at source fidelity).
+      pdf.addImage(bgDataUrl, 'JPEG', 0, 0, pageW, pageH, 'certificate-bg', 'NONE');
+
       const canvas = await html2canvas(nodes[i], {
-        scale: captureScale,
+        scale: textCaptureScale,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: null,
         logging: false,
       });
-      const imgData = canvas.toDataURL('image/png');
-      if (i > 0) pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
+      const textLayer = canvas.toDataURL('image/png');
+      pdf.addImage(textLayer, 'PNG', 0, 0, pageW, pageH, undefined, 'NONE');
     }
 
     pdf.save(pdfFileName());
@@ -393,7 +413,7 @@ async function downloadPdf() {
   } catch (error) {
     showStatus(error.message || 'Не удалось сформировать PDF.', true);
   } finally {
-    printRoot.classList.remove('pdf-capture');
+    printRoot.classList.remove('pdf-capture', 'pdf-capture-text');
     downloadPdfBtn.disabled = false;
     printBtn.disabled = false;
   }
