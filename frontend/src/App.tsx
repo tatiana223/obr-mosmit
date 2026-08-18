@@ -25,6 +25,8 @@ import { AdminCoursesPage } from './pages/AdminCoursesPage';
 import { CoursesPage } from './pages/public/CoursesPage';
 import { MissionaryCatecheticalCoursesPage } from './pages/public/MissionaryCatecheticalCoursesPage';
 import { MissionaryCourseDetailPage } from './pages/public/MissionaryCourseDetailPage';
+import { BiblicalTheologicalCoursesPage } from './pages/public/BiblicalTheologicalCoursesPage';
+import { BiblicalCourseDetailPage } from './pages/public/BiblicalCourseDetailPage';
 import { AdminContactsPage } from './pages/AdminContactsPage';
 import { AdminDocumentsPage } from './pages/AdminDocumentsPage';
 import { DocumentEditorPage } from './pages/DocumentEditorPage';
@@ -45,6 +47,8 @@ export default function App() {
       <Route path="kursy" element={<CoursesPage />}/>
       <Route path="kursy/missionersko-katehizatorskie-kursy" element={<MissionaryCatecheticalCoursesPage />}/>
       <Route path="kursy/missionersko-katehizatorskie-kursy/:slug" element={<MissionaryCourseDetailPage />}/>
+      <Route path="kursy/biblejsko-bogoslovskie-kursy" element={<BiblicalTheologicalCoursesPage />}/>
+      <Route path="kursy/biblejsko-bogoslovskie-kursy/:slug" element={<BiblicalCourseDetailPage />}/>
       <Route path="dokumenty" element={<DocumentsPage />}/>
       <Route path="dokumenty/razdel/:category" element={<DocumentCategoryPage />}/>
       <Route path="dokumenty/:id" element={<DocumentDetailPage />}/>

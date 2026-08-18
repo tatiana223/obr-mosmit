@@ -29,6 +29,15 @@ const COURSE_SECTIONS: CourseSection[] = [
     ctaLabel: 'Открыть раздел',
     cover: '/courses/missionary/kolomna.webp',
   },
+  {
+    id: 'biblejsko-bogoslovskie-kursy',
+    title: 'Библейско-богословские курсы',
+    description:
+      'Библейско-богословские курсы имени преподобного Сергия Радонежского: программа, приём на обучение, отделения и контакты.',
+    to: '/kursy/biblejsko-bogoslovskie-kursy',
+    ctaLabel: 'Открыть раздел',
+    cover: '/courses/biblical/bbkmain.jpg',
+  },
 ]
 
 export function CoursesPage() {
