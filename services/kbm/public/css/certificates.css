@@ -230,6 +230,12 @@
   margin: 0;
 }
 
+/* Text-only capture: PDF embeds native certificate-bg.jpg; html2canvas must not resample it */
+.print-root.pdf-capture.pdf-capture-text .certificate {
+  background: transparent !important;
+  background-image: none !important;
+}
+
 @media print {
   body {
     background: #fff !important;
