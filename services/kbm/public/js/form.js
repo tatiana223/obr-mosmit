@@ -2172,6 +2172,7 @@ excelImportBtn?.addEventListener('click', async () => {
 
     renderDeaneryParticipants();
     syncParticipantIndex();
+    await syncCertificateButton();
 
     const skippedParts = [];
     if (parsed.skipped?.length) {
@@ -2608,6 +2609,7 @@ workForm.addEventListener('submit', async (event) => {
     draft.deanery = savedDeanery;
     renderDeaneryParticipants();
     syncParticipantIndex();
+    await syncCertificateButton();
     showStatus(message);
   } catch (error) {
     showOverlayFormError(error.message || 'Не удалось сохранить');
@@ -2632,6 +2634,7 @@ deaneryParticipantsList.addEventListener('click', async (event) => {
       importHighlights.delete(id);
       renderDeaneryParticipants();
       syncParticipantIndex();
+      await syncCertificateButton();
       showStatus('Участник удалён.');
     } catch (error) {
       showStatus(error.message, true);

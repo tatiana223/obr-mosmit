@@ -297,6 +297,54 @@ function pruneEmptyDeanerySubmissions(meta = {}, participants = []) {
   return { meta: nextMeta, changed: true };
 }
 
+/**
+ * После принятия заявки организатором любое изменение данных благочинным
+ * снимает «Работы приняты» / доступ к сертификатам и требует новой отправки на проверку.
+ * Мутирует participantsList in-place (approved → false).
+ */
+function invalidateDeaneryAcceptanceOnUserEdit(deanery, participantsList) {
+  const key = String(deanery || '').trim();
+  if (!key) {
+    return { metaChanged: false, participantsChanged: false };
+  }
+
+  const meta = readJson(META_FILE, {});
+  const submissions = { ...(meta.submissions || {}) };
+  const current = submissions[key];
+  if (!current || !current.certificatesConfirmed) {
+    return { metaChanged: false, participantsChanged: false, meta };
+  }
+
+  submissions[key] = {
+    ...current,
+    certificatesConfirmed: false,
+    certificatesConfirmedAt: null,
+    // Сброс отправки — пользователь снова нажимает «Отправить данные на проверку»
+    submittedAt: null,
+    reviewed: false,
+    reviewedAt: null,
+    reviewNote: '',
+    rejected: false,
+    rejectedAt: null,
+    rejectionKind: null,
+  };
+  const nextMeta = { ...meta, submissions };
+  writeJson(META_FILE, nextMeta);
+
+  let participantsChanged = false;
+  if (Array.isArray(participantsList)) {
+    for (const item of participantsList) {
+      if (String(item.deanery || '').trim() !== key) continue;
+      if (item.approved) {
+        item.approved = false;
+        participantsChanged = true;
+      }
+    }
+  }
+
+  return { metaChanged: true, participantsChanged, meta: nextMeta };
+}
+
 function calcAge(birthYear) {
   const year = Number(birthYear);
   if (!year) return null;
@@ -1502,6 +1550,7 @@ app.post('/api/participants', requireDeaneryAccess, (req, res) => {
 
   const list = readJson(DATA_FILE, []);
   list.push(result.participant);
+  invalidateDeaneryAcceptanceOnUserEdit(result.participant.deanery, list);
   writeJson(DATA_FILE, list);
   res.status(201).json(result.participant);
 });
@@ -1529,8 +1578,14 @@ app.put('/api/participants/:id', requireDeaneryAccessForParticipantId, (req, res
   }
 
   list[index] = result.participant;
+  if (prevDeanery) {
+    invalidateDeaneryAcceptanceOnUserEdit(prevDeanery, list);
+  }
+  if (nextDeanery && nextDeanery !== prevDeanery) {
+    invalidateDeaneryAcceptanceOnUserEdit(nextDeanery, list);
+  }
   writeJson(DATA_FILE, list);
-  res.json(result.participant);
+  res.json(list[index]);
 });
 
 app.patch('/api/participants/:id/award', requireOrganizerAuth, (req, res) => {
@@ -1573,6 +1628,7 @@ app.delete('/api/participants/:id', requireDeaneryAccessForParticipantId, (req, 
     return res.status(404).json({ error: 'Участник не найден' });
   }
   const next = list.filter((item) => item.id !== req.params.id);
+  invalidateDeaneryAcceptanceOnUserEdit(removed.deanery, next);
   writeJson(DATA_FILE, next);
   pruneEmptyDeanerySubmissions(readJson(META_FILE, {}), next);
   res.json({ ok: true });
