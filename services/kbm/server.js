@@ -186,14 +186,21 @@ function verifyDeaneryAccessCode(deanery, code) {
   return { ok: true };
 }
 
+function decodeDeaneryHeader(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    // Client sends encodeURIComponent(...) so Cyrillic fits ByteString headers.
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 function readDeaneryFromRequest(req, fallback = '') {
-  return String(
-    req.headers['x-deanery'] ||
-      req.body?.deanery ||
-      req.query?.deanery ||
-      fallback ||
-      ''
-  ).trim();
+  const fromHeader = decodeDeaneryHeader(req.headers['x-deanery']);
+  if (fromHeader) return fromHeader;
+  return String(req.body?.deanery || req.query?.deanery || fallback || '').trim();
 }
 
 function readAccessCodeFromRequest(req) {

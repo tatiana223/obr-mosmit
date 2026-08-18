@@ -823,12 +823,14 @@ function setUnlockedCode(deanery, code) {
   persistAccessCodes();
 }
 
-function deaneryAuthHeaders(deanery = deanerySelect.value) {
+function deaneryAuthHeaders(deanery = deanerySelect.value, { json = true } = {}) {
   const key = normalizeDeanery(deanery);
   const code = getUnlockedCode(key);
-  const headers = { 'Content-Type': 'application/json' };
-  if (key) headers['X-Deanery'] = key;
+  const headers = {};
+  // Fetch forbids non-ISO-8859-1 header values — encode Cyrillic deanery names.
+  if (key) headers['X-Deanery'] = encodeURIComponent(key);
   if (code) headers['X-Deanery-Code'] = code;
+  if (json) headers['Content-Type'] = 'application/json';
   return headers;
 }
 
@@ -2196,7 +2198,7 @@ deaneryParticipantsList.addEventListener('click', async (event) => {
     try {
       const response = await fetch(`/api/participants/${encodeURIComponent(id)}`, {
         method: 'DELETE',
-        headers: deaneryAuthHeaders(deanerySelect.value),
+        headers: deaneryAuthHeaders(deanerySelect.value, { json: false }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'Не удалось удалить участника');
