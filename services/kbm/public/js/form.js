@@ -154,7 +154,7 @@ const closeResponsibleBtn = document.getElementById('closeResponsibleBtn');
 const cancelResponsibleBtn = document.getElementById('cancelResponsibleBtn');
 const deaneryAccessOverlay = document.getElementById('deaneryAccessOverlay');
 const deaneryAccessForm = document.getElementById('deaneryAccessForm');
-const deaneryAccessLead = document.getElementById('deaneryAccessLead');
+const deaneryAccessTitle = document.getElementById('deaneryAccessTitle');
 const deaneryAccessCodeInput = document.getElementById('deaneryAccessCode');
 const deaneryAccessStatus = document.getElementById('deaneryAccessStatus');
 const closeDeaneryAccessBtn = document.getElementById('closeDeaneryAccessBtn');
@@ -989,10 +989,10 @@ function showDeaneryAccessStatus(message, isError = false) {
 
 function openDeaneryAccessOverlay(deanery) {
   pendingAccessDeanery = normalizeDeanery(deanery);
-  if (deaneryAccessLead) {
-    deaneryAccessLead.textContent = pendingAccessDeanery
-      ? `Введите код доступа для благочиния «${pendingAccessDeanery}», полученный от организатора.`
-      : 'Введите код доступа, полученный от организатора.';
+  if (deaneryAccessTitle) {
+    deaneryAccessTitle.textContent = pendingAccessDeanery
+      ? `Введите код доступа для благочиния «${pendingAccessDeanery}», полученный от организатора`
+      : 'Введите код доступа, полученный от организатора';
   }
   if (deaneryAccessCodeInput) {
     deaneryAccessCodeInput.value = '';
