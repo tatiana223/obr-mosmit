@@ -372,17 +372,20 @@ async function downloadPdf() {
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
 
+    // ~300 DPI from CSS px (96dpi): keeps fine blue ink in the JPG template crisp.
+    // PNG (not JPEG): JPEG chroma loss muddies thin blue signature strokes.
+    const captureScale = 300 / 96;
     for (let i = 0; i < nodes.length; i += 1) {
       const canvas = await html2canvas(nodes[i], {
-        scale: 2,
+        scale: captureScale,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
       });
-      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      const imgData = canvas.toDataURL('image/png');
       if (i > 0) pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
+      pdf.addImage(imgData, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
     }
 
     pdf.save(pdfFileName());
