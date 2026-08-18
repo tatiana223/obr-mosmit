@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260818-inst-equal-height" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260818-egrul-wait" />
     <link rel="stylesheet" href="/css/site-header.css?v=20260817-compact-header" />
   </head>
   <body>
@@ -316,6 +316,14 @@
                 ></textarea>
                 <ul id="institutionSuggest" class="suggest-list" hidden></ul>
               </div>
+              <span
+                id="institutionEgrulWait"
+                class="egrul-wait-note is-hidden"
+                role="status"
+                aria-live="polite"
+              >
+                Идёт поиск по ЕГРЮЛ, подождите…
+              </span>
               <span id="institutionNameNote" class="field-note is-hidden">
                 Выберите наименование из ЕГРЮЛ — в таблицу попадёт как «Воскресная школа …».
               </span>
@@ -568,6 +576,6 @@
 
     <script src="/js/vendor/xlsx.full.min.js?v=0.18.5"></script>
     <script src="/js/site-header.js?v=20260817-header"></script>
-    <script type="module" src="/js/form.js?v=20260818-checkbox-valid"></script>
+    <script type="module" src="/js/form.js?v=20260818-egrul-wait"></script>
   </body>
 </html>

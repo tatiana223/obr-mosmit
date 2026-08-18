@@ -109,6 +109,7 @@ const institutionType = document.getElementById('institutionType');
 const institutionName = document.getElementById('institutionName');
 const institutionNameLabel = document.getElementById('institutionNameLabel');
 const institutionNameNote = document.getElementById('institutionNameNote');
+const institutionEgrulWait = document.getElementById('institutionEgrulWait');
 const institutionSuggest = document.getElementById('institutionSuggest');
 
 const INSTITUTION_NAME_MAX_HEIGHT_PX = 224; // ~14rem
@@ -273,7 +274,16 @@ function updateNominationOptions() {
   nominationSelect.value = '';
 }
 
+function showEgrulWait() {
+  institutionEgrulWait?.classList.remove('is-hidden');
+}
+
+function hideEgrulWait() {
+  institutionEgrulWait?.classList.add('is-hidden');
+}
+
 function hideSuggest() {
+  hideEgrulWait();
   institutionSuggest.hidden = true;
   institutionSuggest.innerHTML = '';
   institutionSuggest.classList.remove('is-fixed');
@@ -1551,6 +1561,9 @@ function scheduleEgrulSearch() {
     return;
   }
 
+  // Сразу после 2-го слова: debounce + запрос (без мигания при наборе)
+  showEgrulWait();
+
   const religiousOnly = institutionType.value === SUNDAY_SCHOOL_TYPE;
   const locality = String(workForm?.querySelector('[name="locality"]')?.value || '').trim();
   const municipal = String(
@@ -1560,10 +1573,6 @@ function scheduleEgrulSearch() {
 
   suggestTimer = setTimeout(async () => {
     try {
-      institutionSuggest.innerHTML =
-        '<li class="suggest-empty" role="presentation">Ищем в ЕГРЮЛ…</li>';
-      institutionSuggest.hidden = false;
-      positionInstitutionSuggest();
       const items = await fetchEgrulSuggestions(query, {
         religiousOnly,
         locality: religiousOnly ? locality : '',
@@ -1571,9 +1580,11 @@ function scheduleEgrulSearch() {
         rfSubject,
       });
       if (institutionName.value.trim() !== query) return;
+      hideEgrulWait();
       renderSuggest(items);
     } catch (error) {
       if (institutionName.value.trim() !== query) return;
+      hideEgrulWait();
       institutionSuggest.innerHTML = `<li class="suggest-empty" role="presentation">${escapeHtml(error.message || 'Ошибка поиска ЕГРЮЛ')}</li>`;
       institutionSuggest.hidden = false;
       positionInstitutionSuggest();
