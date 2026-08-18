@@ -1314,6 +1314,7 @@ function renderDeaneryParticipants() {
       const review = importHighlights.get(item.id);
       const needsReview = Boolean(review?.fields?.length);
       const fromExcel = Boolean(item.importedFromExcel);
+      const editLabel = participantEditButtonLabel(item);
       const cardClasses = [
         fromExcel ? 'imported-from-excel' : '',
         needsReview ? 'needs-review' : '',
@@ -1333,7 +1334,7 @@ function renderDeaneryParticipants() {
           ${reviewText}
         </div>
         <div class="participant-actions">
-          <button type="button" class="btn-edit" data-edit="${escapeHtml(item.id)}">Исправить данные</button>
+          <button type="button" class="btn-edit" data-edit="${escapeHtml(item.id)}">${editLabel}</button>
           <button
             type="button"
             class="participant-delete-btn"
