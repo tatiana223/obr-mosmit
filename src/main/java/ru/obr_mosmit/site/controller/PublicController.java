@@ -17,6 +17,8 @@ public class PublicController {
             "/kursy",
             "/kursy/missionersko-katehizatorskie-kursy",
             "/kursy/missionersko-katehizatorskie-kursy/{slug}",
+            "/kursy/biblejsko-bogoslovskie-kursy",
+            "/kursy/biblejsko-bogoslovskie-kursy/{slug}",
             "/dokumenty",
             "/dokumenty/razdel/{category}",
             "/dokumenty/{id}",
