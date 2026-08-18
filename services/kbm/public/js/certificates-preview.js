@@ -366,13 +366,16 @@ function pdfFileName() {
 }
 
 async function downloadPdf() {
+  if (downloadPdfBtn.classList.contains('is-busy')) return;
   if (!certificates.length) {
     showStatus('Нет сертификатов для скачивания.', true);
     return;
   }
 
-  downloadPdfBtn.disabled = true;
-  printBtn.disabled = true;
+  downloadPdfBtn.classList.add('is-busy');
+  downloadPdfBtn.setAttribute('aria-busy', 'true');
+  printBtn.classList.add('is-busy');
+  printBtn.setAttribute('aria-busy', 'true');
   showStatus('Формирование PDF…');
 
   try {
@@ -423,12 +426,15 @@ async function downloadPdf() {
     showStatus(error.message || 'Не удалось сформировать PDF.', true);
   } finally {
     printRoot.classList.remove('pdf-capture', 'pdf-capture-text');
-    downloadPdfBtn.disabled = false;
-    printBtn.disabled = false;
+    downloadPdfBtn.classList.remove('is-busy');
+    downloadPdfBtn.removeAttribute('aria-busy');
+    printBtn.classList.remove('is-busy');
+    printBtn.removeAttribute('aria-busy');
   }
 }
 
 printBtn.addEventListener('click', () => {
+  if (printBtn.classList.contains('is-busy')) return;
   if (!certificates.length) {
     showStatus('Нет сертификатов для печати.', true);
     return;
