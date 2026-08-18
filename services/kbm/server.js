@@ -1473,6 +1473,7 @@ function normalizeParticipant(body, existing = null) {
       approved: Boolean(
         body.approved !== undefined ? body.approved : existing?.approved
       ),
+      importedFromExcel: Boolean(existing?.importedFromExcel || body.importedFromExcel),
     },
   };
 }
