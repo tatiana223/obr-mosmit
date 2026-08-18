@@ -315,8 +315,10 @@ function renderParticipantCard(item, index) {
   const fullName = `${escapeHtml(item.lastName || '')} ${escapeHtml(item.firstName || '')}`.trim();
   const workTitle = escapeHtml(item.workTitle || '—');
   const nomination = escapeHtml(item.nomination || '—');
+  const fromExcel = Boolean(item.importedFromExcel);
+  const cardClass = fromExcel ? ' class="imported-from-excel"' : '';
   return `
-    <li data-id="${escapeHtml(item.id)}">
+    <li data-id="${escapeHtml(item.id)}"${cardClass}>
       <div class="participant-info">
         <span class="participant-line" title="${fullName} (${ageLabel}) ${workTitle} / ${nomination}">${index + 1}. <strong class="participant-name">${fullName}</strong> (${ageLabel}) ${workTitle} / <span class="nomination-underline">${nomination}</span></span>
       </div>

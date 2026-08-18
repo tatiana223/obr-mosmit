@@ -821,7 +821,8 @@ input:disabled {
 }
 
 /* Permanent beige tint for Excel-imported cards (survives edits / reload). */
-.deanery-participants li.imported-from-excel {
+.deanery-participants li.imported-from-excel,
+.organizer-winners > li.imported-from-excel {
   border: 1px solid #e2b56f;
   background: #fff7e8;
 }
