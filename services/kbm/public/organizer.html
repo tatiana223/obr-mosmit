@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260818-organizer-excel-beige" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260818-table-winners" />
     <link rel="stylesheet" href="/css/site-header.css?v=20260817-compact-header" />
     <script>
       if (new URLSearchParams(location.search).has('embed')) {
@@ -194,12 +194,16 @@
           <button type="button" class="chip chip-btn" data-table-view="nomination">
             По номинациям
           </button>
+          <button type="button" class="chip chip-btn" data-table-filter="winners" aria-pressed="false">
+            Победители
+          </button>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>№</th>
+                <th>Место</th>
                 <th>Епархия</th>
                 <th>Благочиние</th>
                 <th>Фамилия</th>
@@ -208,7 +212,6 @@
                 <th>Название рисунка</th>
                 <th>Адрес</th>
                 <th>Номинация</th>
-                <th>Место</th>
                 <th>Учреждение</th>
                 <th>Педагог</th>
                 <th>Тел. педагога</th>
@@ -250,6 +253,6 @@
     </div>
 
     <script src="/js/site-header.js?v=20260817-admin-embed"></script>
-    <script type="module" src="/js/organizer.js?v=20260818-organizer-excel-beige"></script>
+    <script type="module" src="/js/organizer.js?v=20260818-table-winners"></script>
   </body>
 </html>
