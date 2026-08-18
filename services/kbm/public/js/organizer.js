@@ -12,6 +12,7 @@ const settingsForm = document.getElementById('settingsForm');
 const settingsStatus = document.getElementById('settingsStatus');
 const winnersBlocks = document.getElementById('winnersBlocks');
 const winnersStatus = document.getElementById('winnersStatus');
+const deleteAllParticipantsBtn = document.getElementById('deleteAllParticipantsBtn');
 const accessCodesBody = document.getElementById('accessCodesBody');
 const accessStatus = document.getElementById('accessStatus');
 const generateAllAccessBtn = document.getElementById('generateAllAccessBtn');
@@ -360,6 +361,11 @@ function renderParticipantCard(item, index) {
 function renderWinners() {
   const groups = groupByDeanery(participants);
 
+  if (deleteAllParticipantsBtn) {
+    deleteAllParticipantsBtn.hidden = !groups.length;
+    deleteAllParticipantsBtn.disabled = false;
+  }
+
   if (!groups.length) {
     winnersBlocks.innerHTML = '<p class="organizer-empty">Участников пока нет.</p>';
     return;
@@ -416,7 +422,15 @@ function renderWinners() {
           ${list.map((item, index) => renderParticipantCard(item, index)).join('')}
         </ul>
         <div class="organizer-confirm-actions">
-          <div class="organizer-confirm-main" aria-hidden="true"></div>
+          <div class="organizer-delete-all-slot">
+            <button
+              type="button"
+              class="btn btn-danger btn-delete-all"
+              data-delete-all-deanery="${escapeHtml(deanery)}"
+            >
+              Удалить всех участников
+            </button>
+          </div>
           <div class="organizer-save-slot">
             <button
               type="button"
@@ -541,6 +555,46 @@ winnersBlocks.addEventListener('click', async (event) => {
     return;
   }
 
+  const deleteAllBtn = event.target.closest('[data-delete-all-deanery]');
+  if (deleteAllBtn) {
+    const deanery = String(deleteAllBtn.dataset.deleteAllDeanery || '').trim();
+    if (!deanery) return;
+    const count = participants.filter((item) => String(item.deanery || '').trim() === deanery)
+      .length;
+    if (!count) return;
+    const warning =
+      count === 1
+        ? `Удалить единственного участника благочиния «${deanery}»? Это действие нельзя отменить.`
+        : `Удалить всех участников благочиния «${deanery}» (${count})?\n\nБудут удалены все карточки этой заявки. Это действие нельзя отменить.`;
+    if (!confirm(warning)) return;
+
+    deleteAllBtn.disabled = true;
+    try {
+      const response = await fetch(
+        `/api/organizer/participants?deanery=${encodeURIComponent(deanery)}`,
+        { method: 'DELETE' }
+      );
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Не удалось удалить участников');
+      await loadParticipants();
+      const deletedCount = Number(result.deletedCount) || count;
+      const message =
+        deletedCount === 1
+          ? `Участник благочиния «${deanery}» удалён.`
+          : `Удалены все участники благочиния «${deanery}» (${deletedCount}).`;
+      showStatus(winnersStatus, message);
+      openNoticeOverlay(
+        `${message} Отметки отправки и подтверждения для пустого благочиния сняты.`
+      );
+    } catch (error) {
+      showStatus(winnersStatus, error.message, true);
+      openNoticeOverlay(error.message);
+      deleteAllBtn.disabled = false;
+      await loadParticipants();
+    }
+    return;
+  }
+
   const deleteBtn = event.target.closest('[data-delete-participant]');
   if (deleteBtn) {
     const id = deleteBtn.dataset.deleteParticipant;
@@ -580,6 +634,38 @@ winnersBlocks.addEventListener('click', async (event) => {
     return;
   }
 });
+
+if (deleteAllParticipantsBtn) {
+  deleteAllParticipantsBtn.addEventListener('click', async () => {
+    const count = participants.length;
+    if (!count) return;
+    const warning =
+      count === 1
+        ? 'Удалить единственного участника во всех благочиниях? Это действие нельзя отменить.'
+        : `Удалить всех участников во всех благочиниях (${count})?\n\nБудут удалены все заявки. Это действие нельзя отменить.`;
+    if (!confirm(warning)) return;
+
+    deleteAllParticipantsBtn.disabled = true;
+    try {
+      const response = await fetch('/api/organizer/participants', { method: 'DELETE' });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Не удалось удалить участников');
+      await loadParticipants();
+      const deletedCount = Number(result.deletedCount) || count;
+      const message =
+        deletedCount === 1
+          ? 'Участник удалён.'
+          : `Удалены все участники (${deletedCount}).`;
+      showStatus(winnersStatus, message);
+      openNoticeOverlay(message);
+    } catch (error) {
+      showStatus(winnersStatus, error.message, true);
+      openNoticeOverlay(error.message);
+      deleteAllParticipantsBtn.disabled = false;
+      await loadParticipants();
+    }
+  });
+}
 
 function formatAddress(participant) {
   return [participant.federalDistrict, participant.rfSubject, participant.municipalFormation, participant.locality]
