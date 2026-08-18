@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css?v=20260818-no-forbid-cursor" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260818-excel-import" />
     <link rel="stylesheet" href="/css/site-header.css?v=20260817-compact-header" />
   </head>
   <body>
@@ -87,6 +87,29 @@
             </select>
           </label>
         </form>
+
+        <div id="excelImportBlock" class="excel-import" hidden>
+          <h3>Готовая заявка Excel</h3>
+          <p class="excel-import-lead" id="excelImportHint">
+            Загрузите официальную форму заявки КБМ (.xls/.xlsx) или таблицу с колонками как в
+            CSV-выгрузке. Участники добавятся в список выбранного благочиния.
+          </p>
+          <div class="excel-import-row">
+            <label class="excel-file-picker">
+              <span class="btn btn-ghost excel-file-btn">Выбрать файл</span>
+              <input
+                type="file"
+                id="excelImportFile"
+                accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              />
+            </label>
+            <span class="excel-file-name" id="excelImportFileName">Файл не выбран</span>
+            <button type="button" class="btn btn-secondary" id="excelImportBtn">
+              Выгрузить и заполнить поля
+            </button>
+          </div>
+          <p class="excel-import-status" id="excelImportStatus" role="status"></p>
+        </div>
 
         <div id="deaneryParticipants" class="deanery-participants" hidden>
           <h3 id="deaneryParticipantsTitle">Заявленные участники</h3>
@@ -538,6 +561,8 @@
       </div>
     </div>
 
+    <script src="/js/vendor/xlsx.full.min.js?v=0.18.5"></script>
     <script src="/js/site-header.js?v=20260817-header"></script>
-<script type="module" src="/js/form.js?v=20260818-municipal-blur-cap"></script>  </body>
+    <script type="module" src="/js/form.js?v=20260818-excel-import"></script>
+  </body>
 </html>

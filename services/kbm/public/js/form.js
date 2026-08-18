@@ -1,3 +1,8 @@
+import {
+  collectImportFieldIssues,
+  parseExcelApplicationFile,
+} from './excel-import.js';
+
 const COMPETITION_YEAR = 2026;
 const MIN_AGE = 9;
 const MAX_AGE = 17;
@@ -151,6 +156,11 @@ const nominationSelect = document.getElementById('nomination');
 const deaneryParticipants = document.getElementById('deaneryParticipants');
 const deaneryParticipantsTitle = document.getElementById('deaneryParticipantsTitle');
 const deaneryParticipantsList = document.getElementById('deaneryParticipantsList');
+const excelImportBlock = document.getElementById('excelImportBlock');
+const excelImportFile = document.getElementById('excelImportFile');
+const excelImportFileName = document.getElementById('excelImportFileName');
+const excelImportBtn = document.getElementById('excelImportBtn');
+const excelImportStatus = document.getElementById('excelImportStatus');
 const quotaNote = document.getElementById('quotaNote');
 const QUOTA_RULES = [
   {
@@ -189,6 +199,8 @@ let suggestItems = [];
 let suggestTimer = null;
 let activeSuggestIndex = -1;
 let participantsCache = [];
+/** @type {Map<string, { fields: string[], reasons: string[] }>} */
+const importHighlights = new Map();
 let lastConfirmedDiocese = '';
 let lastConfirmedDeanery = '';
 let suppressDeaneryChange = false;
@@ -1179,11 +1191,76 @@ function renderQuotaCounter() {
     : `«${deanery}»: нужно добрать работы`;
 }
 
+function syncExcelImportVisibility() {
+  if (!excelImportBlock) return;
+  const ready = Boolean(dioceseSelect.value && normalizeDeanery(deanerySelect.value));
+  excelImportBlock.hidden = !ready;
+}
+
+function showExcelImportStatus(message, { error = false, ok = false } = {}) {
+  if (!excelImportStatus) return;
+  excelImportStatus.textContent = message || '';
+  excelImportStatus.classList.toggle('is-error', Boolean(message) && error);
+  excelImportStatus.classList.toggle('is-ok', Boolean(message) && ok && !error);
+}
+
+function clearImportFieldHighlights() {
+  workForm
+    ?.querySelectorAll('.field-import-issue')
+    .forEach((el) => el.classList.remove('field-import-issue'));
+}
+
+function applyImportFieldHighlights(participantId) {
+  clearImportFieldHighlights();
+  const entry = importHighlights.get(participantId);
+  if (!entry?.fields?.length) return;
+
+  const fieldMap = {
+    workTitle: workForm?.workTitle,
+    nomination: nominationSelect,
+    institutionName,
+    institutionType,
+    teacherName: workForm?.teacherName,
+    teacherPhone: teacherPhoneInput,
+    representativeName: workForm?.representativeName,
+    representativePhone: representativePhoneInput,
+    municipalFormation: municipalFormationInput,
+    locality: workForm?.querySelector('[name="locality"]'),
+    lastName: workForm?.lastName,
+    firstName: workForm?.firstName,
+    birthYear: birthYearSelect,
+  };
+
+  for (const field of entry.fields) {
+    fieldMap[field]?.classList.add('field-import-issue');
+  }
+}
+
+function refreshImportHighlightForParticipant(participant, { egrulPicked = false } = {}) {
+  if (!participant?.id || !importHighlights.has(participant.id)) return;
+  const issues = collectImportFieldIssues({
+    ...participant,
+    age: participant.age ?? COMPETITION_YEAR - Number(participant.birthYear),
+  });
+  if (egrulPicked || (egrulSelected && usesEgrul(participant.institutionType))) {
+    issues.fields = issues.fields.filter((field) => field !== 'institutionName');
+    issues.reasons = issues.reasons.filter(
+      (reason) => !/егрюл|юрлиц|учреждени|название учреждения/i.test(reason)
+    );
+  }
+  if (!issues.fields.length) {
+    importHighlights.delete(participant.id);
+  } else {
+    importHighlights.set(participant.id, issues);
+  }
+}
+
 function renderDeaneryParticipants() {
   const deanery = deanerySelect.value;
   const list = getParticipantsForDeanery(deanery);
   renderQuotaCounter();
   syncCertificateButton();
+  syncExcelImportVisibility();
 
   if (downloadCsvBtn) {
     downloadCsvBtn.hidden = list.length === 0;
@@ -1203,12 +1280,20 @@ function renderDeaneryParticipants() {
   }
 
   deaneryParticipantsList.innerHTML = list
-    .map(
-      (item, index) => `
-      <li data-id="${escapeHtml(item.id)}">
+    .map((item, index) => {
+      const review = importHighlights.get(item.id);
+      const needsReview = Boolean(review?.fields?.length);
+      const reviewText = needsReview
+        ? `<span class="review-hint"><strong>Проверьте:</strong> ${escapeHtml(
+            (review.reasons || []).join('; ') || 'поля после импорта Excel'
+          )}</span>`
+        : '';
+      return `
+      <li data-id="${escapeHtml(item.id)}" class="${needsReview ? 'needs-review' : ''}">
         <div class="participant-info">
           <span class="participant-name">${index + 1}. ${escapeHtml(item.lastName)} ${escapeHtml(item.firstName)}</span>
           <span class="participant-meta">${escapeHtml(String(item.age ?? '—'))} лет · ${escapeHtml(item.workTitle)} · Номинация: <span class="nomination-underline">${escapeHtml(item.nomination)}</span></span>
+          ${reviewText}
         </div>
         <div class="participant-actions">
           <button type="button" class="btn-edit" data-edit="${escapeHtml(item.id)}">Исправить данные</button>
@@ -1227,8 +1312,8 @@ function renderDeaneryParticipants() {
             </svg>
           </button>
         </div>
-      </li>`
-    )
+      </li>`;
+    })
     .join('');
   deaneryParticipants.hidden = false;
 }
@@ -1370,6 +1455,16 @@ function selectSuggest(item) {
       : item.name;
   egrulSelected = true;
   hideSuggest();
+  institutionName?.classList.remove('field-import-issue');
+  if (editingId && importHighlights.has(editingId)) {
+    const entry = importHighlights.get(editingId);
+    entry.fields = entry.fields.filter((field) => field !== 'institutionName');
+    entry.reasons = entry.reasons.filter(
+      (reason) => !/егрюл|юрлиц|учреждени|название учреждения/i.test(reason)
+    );
+    if (!entry.fields.length) importHighlights.delete(editingId);
+    else importHighlights.set(editingId, entry);
+  }
 }
 
 /** Поиск ЕГРЮЛ только после второго слова (токены через пробел). */
@@ -1577,6 +1672,11 @@ function fillParticipantForm(participant) {
   clearAutofillManualHighlights();
   setOverlayMode(true);
   applyParticipantFields(participant, { mode: 'full' });
+  // Импорт без выбора ЕГРЮЛ — не считаем имя «подтверждённым» из реестра
+  if (importHighlights.has(participant.id) && requiresEgrulPick(participant.institutionType)) {
+    egrulSelected = false;
+  }
+  applyImportFieldHighlights(participant.id);
 }
 
 function findParticipantByIdentity() {
@@ -1695,6 +1795,7 @@ function closeOverlay() {
   hideSuggest();
   hideAllPriorSuggests();
   clearAutofillManualHighlights();
+  clearImportFieldHighlights();
   editingId = null;
   setOverlayMode(false);
   overlay.classList.remove('open');
@@ -1920,6 +2021,117 @@ downloadCsvBtn?.addEventListener('click', async () => {
     showStatus(`Скачан CSV по благочинию «${deanery}» (${list.length} участников).`);
   } catch (error) {
     showStatus(error.message, true);
+  }
+});
+
+excelImportFile?.addEventListener('change', () => {
+  const file = excelImportFile.files?.[0];
+  if (excelImportFileName) {
+    excelImportFileName.textContent = file?.name || 'Файл не выбран';
+  }
+  showExcelImportStatus('');
+});
+
+excelImportBtn?.addEventListener('click', async () => {
+  const diocese = dioceseSelect.value.trim();
+  const deanery = normalizeDeanery(deanerySelect.value);
+  if (!diocese) {
+    showExcelImportStatus('Сначала выберите епархию.', { error: true });
+    return;
+  }
+  if (!deanery) {
+    showExcelImportStatus('Сначала выберите благочиние.', { error: true });
+    return;
+  }
+
+  const unlocked = await ensureDeaneryAccess(deanery);
+  if (!unlocked) {
+    showExcelImportStatus('Нужен код доступа к благочинию.', { error: true });
+    return;
+  }
+
+  const file = excelImportFile?.files?.[0];
+  if (!file) {
+    showExcelImportStatus('Выберите файл Excel (.xlsx или .xls).', { error: true });
+    return;
+  }
+
+  excelImportBtn.disabled = true;
+  showExcelImportStatus('Читаем файл…');
+
+  try {
+    const parsed = await parseExcelApplicationFile(file, { diocese, deanery });
+    let saved = 0;
+    const failed = [];
+
+    for (const entry of parsed.participants) {
+      const body = { ...entry.payload };
+      delete body.age;
+      delete body._addressIncomplete;
+      delete body._rowNumber;
+      delete body._nominationCorrected;
+
+      try {
+        const response = await fetch('/api/participants', {
+          method: 'POST',
+          headers: deaneryAuthHeaders(deanery),
+          body: JSON.stringify(body),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result.error || 'Ошибка сохранения');
+        }
+        participantsCache.push(result);
+        if (entry.issues?.fields?.length) {
+          importHighlights.set(result.id, entry.issues);
+        }
+        saved += 1;
+      } catch (error) {
+        failed.push({
+          name: `${body.lastName || ''} ${body.firstName || ''}`.trim() || 'без имени',
+          reason: error.message || 'ошибка',
+        });
+      }
+    }
+
+    renderDeaneryParticipants();
+    syncParticipantIndex();
+
+    const skippedParts = [];
+    if (parsed.skipped?.length) {
+      skippedParts.push(`пропущено при разборе: ${parsed.skipped.length}`);
+    }
+    if (failed.length) {
+      skippedParts.push(`не сохранено: ${failed.length}`);
+    }
+
+    if (!saved) {
+      const detail = [...(parsed.skipped || []), ...failed]
+        .slice(0, 3)
+        .map((item) => `${item.name || `стр. ${item.row}`}: ${item.reason}`)
+        .join('; ');
+      throw new Error(
+        detail
+          ? `Не удалось добавить участников. ${detail}`
+          : 'Не удалось добавить участников из файла.'
+      );
+    }
+
+    const reviewCount = [...importHighlights.keys()].filter((id) =>
+      participantsCache.some((person) => person.id === id && normalizeDeanery(person.deanery) === deanery)
+    ).length;
+
+    let message = `Добавлено участников: ${saved}`;
+    if (skippedParts.length) message += ` (${skippedParts.join(', ')})`;
+    if (reviewCount) {
+      message += `. Подсвечено для проверки: ${reviewCount} (особенно названия учреждений / юрлиц).`;
+    }
+    showExcelImportStatus(message, { ok: true });
+    showStatus(message);
+  } catch (error) {
+    showExcelImportStatus(error.message || 'Не удалось импортировать файл.', { error: true });
+  } finally {
+    excelImportBtn.disabled = false;
   }
 });
 
@@ -2280,6 +2492,7 @@ workForm.addEventListener('submit', async (event) => {
 
     if (isEdit) {
       participantsCache = participantsCache.map((item) => (item.id === result.id ? result : item));
+      refreshImportHighlightForParticipant(result, { egrulPicked: egrulSelected });
     } else {
       participantsCache.push(result);
     }
@@ -2321,6 +2534,7 @@ deaneryParticipantsList.addEventListener('click', async (event) => {
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'Не удалось удалить участника');
       participantsCache = participantsCache.filter((item) => item.id !== id);
+      importHighlights.delete(id);
       renderDeaneryParticipants();
       syncParticipantIndex();
       showStatus('Участник удалён.');
@@ -2388,6 +2602,7 @@ dioceseSelect.addEventListener('change', () => {
   lastConfirmedDiocese = nextValue;
   draft.diocese = nextValue;
   persistSelection(nextValue, deanerySelect.value);
+  syncExcelImportVisibility();
 });
 
 deanerySelect.addEventListener('change', async () => {
