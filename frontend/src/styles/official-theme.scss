@@ -707,28 +707,11 @@
   line-height: 1.35;
 }
 .official-footer--links-only .footer-resource-links a:first-child { border-left: 0; }
-.official-footer--links-only .footer-admin-link {
-  flex: 0 0 auto;
-  margin-left: 4px;
-  padding: 8px 0 8px 26px;
-  border-left: 1px solid rgba(210,170,92,.58);
-  color: rgba(255,255,255,.58);
-  white-space: nowrap;
-  font-size: 11px;
-}
-.official-footer--links-only .footer-admin-link:hover { color: #d2aa5c; }
 
 @media (max-width: 1100px) {
   .official-footer--links-only nav { align-items: stretch; flex-direction: column; gap: 10px; }
   .official-footer--links-only .footer-resource-links { width: 100%; grid-template-columns: repeat(2, minmax(0,1fr)); }
   .official-footer--links-only .footer-resource-links a:nth-child(3) { border-left: 0; }
-  .official-footer--links-only .footer-admin-link {
-    align-self: flex-end;
-    margin: 0;
-    padding: 5px 0 2px;
-    border-left: 0;
-    border-top: 1px solid rgba(210,170,92,.32);
-  }
 }
 @media (max-width: 620px) {
   .official-footer--links-only { padding: 18px 16px; }
@@ -742,7 +725,6 @@
     text-align: left;
   }
   .official-footer--links-only .footer-resource-links a:first-child { border-top: 0; }
-  .official-footer--links-only .footer-admin-link { align-self: flex-start; }
 }
 
 /* Unified pagination for long public and admin lists */
@@ -1398,26 +1380,6 @@
   color: #d2aa5c;
 }
 
-.footer-admin-strip {
-  min-height: 34px;
-  padding: 8px 4.8% 9px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  background: var(--paper);
-  border-top: 1px solid rgba(93,72,58,.08);
-}
-.footer-admin-strip a {
-  color: #9b8c81;
-  font-size: 9px;
-  line-height: 1.2;
-  letter-spacing: .01em;
-  text-decoration: none;
-}
-.footer-admin-strip a:hover {
-  color: var(--gold);
-}
-
 /* Narrow browser: menu aligns to the same right-side visual edge as the news area */
 @media (min-width: 761px) and (max-width: 1050px) {
   .official-header {
@@ -1450,18 +1412,9 @@
     border-top: 1px solid rgba(210,170,92,.32);
     text-align: left;
   }
-
-  .footer-admin-strip {
-    min-height: 30px;
-    padding: 7px 16px 8px;
-  }
-
-  .footer-admin-strip a {
-    font-size: 8.5px;
-  }
 }
 
-/* Footer: equal centered links, admin appears only after an extra downward scroll */
+/* Footer: equal centered links */
 .official-footer--links-only {
   padding-left: 4.8%;
   padding-right: 4.8%;
@@ -1508,44 +1461,6 @@
   color: #d2aa5c;
 }
 
-/* Hidden completely until a second downward scroll at the bottom */
-.footer-admin-strip {
-  height: 0;
-  min-height: 0;
-  padding: 0 4.8%;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  background: var(--paper);
-  border-top: 0;
-  opacity: 0;
-  transition:
-    height .22s ease,
-    padding .22s ease,
-    opacity .18s ease,
-    border-color .22s ease;
-}
-
-.footer-admin-strip.revealed {
-  height: 30px;
-  padding-top: 6px;
-  padding-bottom: 7px;
-  border-top: 1px solid rgba(93,72,58,.07);
-  opacity: 1;
-}
-
-.footer-admin-strip a {
-  color: #a3978e;
-  font-size: 8.5px;
-  line-height: 1;
-  text-decoration: none;
-}
-
-.footer-admin-strip a:hover {
-  color: var(--gold);
-}
-
 @media (max-width: 1100px) {
   .official-footer--links-only nav {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1574,41 +1489,6 @@
   .official-footer--links-only .footer-resource-links a:first-child {
     border-top: 0;
   }
-
-  .footer-admin-strip {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .footer-admin-strip.revealed {
-    height: 28px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-  }
-}
-
-
-
-/* Admin access stays deliberately unobtrusive even after it is discovered */
-.footer-admin-strip.revealed {
-  height: 24px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-.footer-admin-strip a {
-  font-size: 8px;
-  opacity: .72;
-}
-
-
-/* Hidden admin strip must not be interactable before the deliberate reveal */
-.footer-admin-strip:not(.revealed) {
-  pointer-events: none;
-  visibility: hidden;
-}
-.footer-admin-strip.revealed {
-  visibility: visible;
-  pointer-events: auto;
 }
 
 /* Final UI adjustments: menu farther right and dynamic contacts */

@@ -38,7 +38,6 @@ img, video, iframe, svg { max-width: 100%; }
   .news-card-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .official-footer { flex-wrap: wrap; align-items: center; }
   .official-footer nav { flex: 1 1 650px; justify-content: flex-start; flex-wrap: wrap; }
-  .official-footer .footer-admin-link { margin-left: auto; }
   .workspace, .official-theme .workspace { max-width: 100%; }
 }
 
@@ -64,7 +63,6 @@ img, video, iframe, svg { max-width: 100%; }
   .official-footer { padding: 18px; display: grid; grid-template-columns: 1fr; gap: 14px; }
   .official-footer nav { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
   .official-footer nav a { min-height: 44px; padding: 8px; display: flex; align-items: center; justify-content: center; border-left: 0; border-bottom: 1px solid rgba(210,170,92,.25); white-space: normal; line-height: 1.25; }
-  .official-footer .footer-admin-link { width: fit-content; margin: 2px 0 0 auto; padding: 7px 0 2px 14px; border-left: 1px solid rgba(210,170,92,.4); font-size: 10px; }
   .public-competitions-grid, .courses-grid, .document-category-grid { grid-template-columns: 1fr !important; }
   .content-gallery { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
   .modal-backdrop { padding: 12px; }
