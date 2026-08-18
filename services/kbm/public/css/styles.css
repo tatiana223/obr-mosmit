@@ -359,7 +359,7 @@ input[readonly]:focus {
 input:disabled {
   color: var(--ink-soft);
   background: #efe9dc;
-  cursor: not-allowed;
+  cursor: default;
 }
 
 .actions {
@@ -428,9 +428,18 @@ input:disabled {
 .btn:disabled,
 .btn[disabled] {
   opacity: 0.55;
-  cursor: not-allowed;
+  cursor: default;
   transform: none;
   box-shadow: none;
+}
+
+.btn.is-busy,
+.btn.is-busy:disabled,
+.btn.is-busy[disabled],
+.btn[aria-busy='true'] {
+  cursor: progress;
+  opacity: 0.7;
+  transform: none;
 }
 
 .participants-header {
@@ -807,7 +816,7 @@ input:disabled {
 
 .participant-delete-btn:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: default;
 }
 
 .hint {
@@ -1121,7 +1130,7 @@ input:disabled {
 .organizer-save-btn:disabled,
 .organizer-save-btn.is-inactive {
   opacity: 0.45;
-  cursor: not-allowed;
+  cursor: default;
   filter: grayscale(0.25);
   box-shadow: none;
 }
@@ -1172,7 +1181,7 @@ input:disabled {
 
 .organizer-delete-btn:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: default;
 }
 
 .organizer-winners {
