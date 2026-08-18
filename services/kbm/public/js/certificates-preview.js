@@ -11,6 +11,7 @@ const certificateGrid = document.getElementById('certificateGrid');
 const printRoot = document.getElementById('printRoot');
 const previewStatus = document.getElementById('previewStatus');
 const printBtn = document.getElementById('printBtn');
+const downloadPdfBtn = document.getElementById('downloadPdfBtn');
 const backToSelect = document.getElementById('backToSelect');
 const previewOverlay = document.getElementById('previewOverlay');
 const previewStage = document.getElementById('previewStage');
@@ -325,12 +326,86 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') closePreview();
 });
 
+function waitForBackgroundImage() {
+  const base = window.__KBM_BASE__ || '';
+  const img = new Image();
+  img.src = `${base}/assets/certificate-bg.jpg?v=5`;
+  if (img.complete) return Promise.resolve();
+  return new Promise((resolve) => {
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+  });
+}
+
+function pdfFileName() {
+  const raw = `${diocese}-${deanery}-diplomy`;
+  return `${raw.replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'diplomy'}.pdf`;
+}
+
+async function downloadPdf() {
+  if (!certificates.length) {
+    showStatus('Нет сертификатов для скачивания.', true);
+    return;
+  }
+
+  downloadPdfBtn.disabled = true;
+  printBtn.disabled = true;
+  showStatus('Формирование PDF…');
+
+  try {
+    const [{ default: html2canvas }, jspdfModule] = await Promise.all([
+      import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm'),
+      import('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm'),
+    ]);
+    const jsPDF = jspdfModule.jsPDF || jspdfModule.default?.jsPDF || jspdfModule.default;
+    if (!jsPDF) throw new Error('Не удалось загрузить библиотеку PDF.');
+
+    await waitForBackgroundImage();
+    printRoot.classList.add('pdf-capture');
+    // Allow layout/paint before capture
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const nodes = [...printRoot.querySelectorAll('.certificate')];
+    if (!nodes.length) throw new Error('Нет сертификатов для скачивания.');
+
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+
+    for (let i = 0; i < nodes.length; i += 1) {
+      const canvas = await html2canvas(nodes[i], {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
+    }
+
+    pdf.save(pdfFileName());
+    showStatus(`PDF сохранён (${nodes.length} стр.).`);
+  } catch (error) {
+    showStatus(error.message || 'Не удалось сформировать PDF.', true);
+  } finally {
+    printRoot.classList.remove('pdf-capture');
+    downloadPdfBtn.disabled = false;
+    printBtn.disabled = false;
+  }
+}
+
 printBtn.addEventListener('click', () => {
   if (!certificates.length) {
     showStatus('Нет сертификатов для печати.', true);
     return;
   }
   window.print();
+});
+
+downloadPdfBtn.addEventListener('click', () => {
+  void downloadPdf();
 });
 
 await init();
