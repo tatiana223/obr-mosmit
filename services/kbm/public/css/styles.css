@@ -285,17 +285,17 @@ input[readonly]:focus {
   line-height: 1.3;
 }
 
-/* Тип: короткие варианты, но без жёсткой обрезки на узких экранах */
+/* Тип: высота синхронизируется с #institutionName в form.js */
 #institutionType {
-  height: auto;
-  min-height: 3rem;
+  min-height: 3.6rem;
+  height: 3.6rem;
   white-space: normal;
   line-height: 1.35;
   padding-top: 0.7rem;
   padding-bottom: 0.7rem;
 }
 
-/* Название юрлица: растёт по содержимому (типичные длинные ЕГРЮЛ-названия) */
+/* Название юрлица: растёт по содержимому; тип подстраивается под ту же высоту */
 #institutionName {
   display: block;
   min-height: 3.6rem;
