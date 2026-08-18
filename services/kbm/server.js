@@ -1471,9 +1471,26 @@ function normalizeParticipant(body, existing = null) {
     };
   }
 
-  if (!body.rightsConsent || !body.personalDataConsent || !body.idDocumentConfirm) {
+  const missingConsents = [];
+  if (!body.rightsConsent) {
+    missingConsents.push(
+      'согласие о передаче прав на работу (соглашение законного представителя о передаче исключительных авторских прав)'
+    );
+  }
+  if (!body.personalDataConsent) {
+    missingConsents.push('согласие на обработку персональных данных');
+  }
+  if (!body.idDocumentConfirm) {
+    missingConsents.push(
+      'документ, удостоверяющий личность ребёнка (копия паспорта или свидетельства о рождении)'
+    );
+  }
+  if (missingConsents.length) {
     return {
-      error: 'Нужны все три отметки: передача прав, персональные данные и документ личности',
+      error:
+        missingConsents.length === 1
+          ? `Отметьте: ${missingConsents[0]}`
+          : `Отметьте обязательные согласия:\n• ${missingConsents.join('\n• ')}`,
     };
   }
 

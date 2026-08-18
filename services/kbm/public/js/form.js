@@ -2528,14 +2528,73 @@ function showOverlayFormError(message) {
   showStatus(message, true);
 }
 
+/** Подпись обязательного контрола для предупреждения при сохранении. */
+function labelForInvalidControl(control) {
+  const labelEl = control?.closest?.('label');
+  if (!labelEl) {
+    return String(control?.getAttribute?.('name') || control?.id || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Чекбоксы согласий: текст в <span>, а не в первом childNodes[0] (там input)
+  if (control.type === 'checkbox' || control.type === 'radio') {
+    const span = labelEl.querySelector('span');
+    return String(span?.textContent || labelEl.textContent || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  for (const node of labelEl.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = String(node.textContent || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (text) return text;
+    }
+  }
+
+  const title = labelEl.querySelector('.field-title');
+  if (title) {
+    return String(title.textContent || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  return String(control.getAttribute('name') || control.id || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Все незаполненные required-поля и неотмеченные required-чекбоксы карточки участника. */
+function collectValidationErrors(form) {
+  const labels = [];
+  const seen = new Set();
+  for (const el of form.querySelectorAll(':invalid')) {
+    // г.о./м.о. не required — в :invalid не попадут
+    const label = labelForInvalidControl(el);
+    if (!label || seen.has(label)) continue;
+    seen.add(label);
+    labels.push(label);
+  }
+  return labels;
+}
+
+function formatValidationWarning(labels) {
+  if (!labels.length) return 'Заполните все обязательные поля формы.';
+  if (labels.length === 1) {
+    const one = labels[0];
+    if (/^Подтверждаю\b/i.test(one)) return `Отметьте: ${one}`;
+    return `Заполните поле: ${one}`;
+  }
+  return `Заполните обязательные поля:\n• ${labels.join('\n• ')}`;
+}
+
 saveParticipantBtn?.addEventListener('click', () => {
   if (workForm.checkValidity()) return;
   const invalid = workForm.querySelector(':invalid');
   invalid?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  const label = invalid?.closest('label')?.childNodes?.[0]?.textContent?.trim();
-  showOverlayFormError(
-    label ? `Заполните поле: ${label.replace(/\s+/g, ' ')}` : 'Заполните все обязательные поля формы.'
-  );
+  showOverlayFormError(formatValidationWarning(collectValidationErrors(workForm)));
 });
 
 workForm.addEventListener('submit', async (event) => {
