@@ -188,13 +188,15 @@ textarea:focus {
 }
 
 input.field-needs-input,
-select.field-needs-input {
+select.field-needs-input,
+textarea.field-needs-input {
   background: #fceef2;
   border-color: #e8a0b8;
 }
 
 input.field-needs-input:focus,
-select.field-needs-input:focus {
+select.field-needs-input:focus,
+textarea.field-needs-input:focus {
   border-color: #d47a9a;
   box-shadow: 0 0 0 3px rgba(244, 167, 192, 0.35);
 }
@@ -281,6 +283,28 @@ input[readonly]:focus {
   display: block;
   min-height: 2.6em;
   line-height: 1.3;
+}
+
+/* Тип: короткие варианты, но без жёсткой обрезки на узких экранах */
+#institutionType {
+  height: auto;
+  min-height: 3rem;
+  white-space: normal;
+  line-height: 1.35;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+/* Название юрлица: растёт по содержимому (типичные длинные ЕГРЮЛ-названия) */
+#institutionName {
+  display: block;
+  min-height: 3.6rem;
+  max-height: 14rem;
+  height: auto;
+  resize: none;
+  overflow-y: hidden;
+  line-height: 1.35;
+  field-sizing: content;
 }
 
 .field-note {
@@ -814,13 +838,15 @@ input:disabled {
 }
 
 input.field-import-issue,
-select.field-import-issue {
+select.field-import-issue,
+textarea.field-import-issue {
   background: #fff4df;
   border-color: #e2b56f;
 }
 
 input.field-import-issue:focus,
-select.field-import-issue:focus {
+select.field-import-issue:focus,
+textarea.field-import-issue:focus {
   border-color: #c9923a;
   box-shadow: 0 0 0 3px rgba(226, 181, 111, 0.35);
 }
