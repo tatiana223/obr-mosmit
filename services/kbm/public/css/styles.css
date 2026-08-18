@@ -309,9 +309,9 @@ input[readonly]:focus {
 
 .municipal-formation-heading {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.45rem 0.75rem;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
   color: var(--ink-soft);
   font-size: 0.92rem;
   font-weight: 600;
@@ -320,24 +320,27 @@ input[readonly]:focus {
 .municipal-formation-heading .field-title {
   min-height: 0;
   margin: 0;
+  white-space: nowrap;
 }
 
 .municipal-type-toggles {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.45rem 0.7rem;
+  gap: 0.55rem;
+  flex: 0 0 auto;
 }
 
 .municipal-type-option {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   margin: 0;
   color: var(--ink-soft);
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .municipal-type-option input {
@@ -351,12 +354,6 @@ input[readonly]:focus {
   color: var(--ink);
   font-weight: 700;
   letter-spacing: 0.01em;
-}
-
-.municipal-type-hint {
-  color: var(--ink-soft);
-  font-weight: 500;
-  white-space: nowrap;
 }
 
 input:disabled {
