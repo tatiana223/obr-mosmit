@@ -365,7 +365,15 @@ app.use((req, res, next) => {
   return next();
 });
 
-app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+// Never serve *.html via static: sendHtml must inject BASE_PATH boot/rewrites.
+// Otherwise /certificates.html loads with root /js and /css (404 under the site embed).
+const publicStatic = express.static(path.join(__dirname, 'public'), { index: false });
+app.use((req, res, next) => {
+  if ((req.method === 'GET' || req.method === 'HEAD') && /\.html$/i.test(req.path || '')) {
+    return next();
+  }
+  return publicStatic(req, res, next);
+});
 
 app.get('/api/settings', (_req, res) => {
   const current = readJson(SETTINGS_FILE, DEFAULT_SETTINGS);
@@ -1468,6 +1476,7 @@ app.get('/certificates/preview', (_req, res) => {
 
 app.get('/index.html', (_req, res) => sendHtml(res, 'index.html'));
 app.get('/organizer.html', requireOrganizerAuth, (_req, res) => sendHtml(res, 'organizer.html'));
+app.get('/admin.html', requireOrganizerAuth, (_req, res) => sendHtml(res, 'admin.html'));
 app.get('/certificates.html', (_req, res) => sendHtml(res, 'certificates.html'));
 app.get('/certificates-preview.html', (_req, res) => sendHtml(res, 'certificates-preview.html'));
 

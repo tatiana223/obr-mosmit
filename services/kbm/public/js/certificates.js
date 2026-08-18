@@ -103,7 +103,7 @@ buildCertificatesBtn.addEventListener('click', () => {
     deanery,
     ids: ids.join(','),
   });
-  window.location.href = `${window.__KBM_BASE__ || ''}/certificates-preview.html?${next.toString()}`;
+  window.location.href = `${window.__KBM_BASE__ || ''}/certificates/preview?${next.toString()}`;
 });
 
 await init();

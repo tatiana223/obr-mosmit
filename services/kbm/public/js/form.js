@@ -1820,7 +1820,7 @@ getCertificateBtn?.addEventListener('click', () => {
     return;
   }
   const params = new URLSearchParams({ diocese, deanery });
-  window.location.href = `${window.__KBM_BASE__ || ''}/certificates.html?${params.toString()}`;
+  window.location.href = `${window.__KBM_BASE__ || ''}/certificates?${params.toString()}`;
 });
 
 submitReviewBtn?.addEventListener('click', () => {

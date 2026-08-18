@@ -250,7 +250,7 @@ function closePreview() {
 }
 
 async function init() {
-  backToSelect.href = `${window.__KBM_BASE__ || ''}/certificates.html?${new URLSearchParams({ diocese, deanery }).toString()}`;
+  backToSelect.href = `${window.__KBM_BASE__ || ''}/certificates?${new URLSearchParams({ diocese, deanery }).toString()}`;
 
   if (!diocese || !deanery || !ids.length) {
     showStatus('Не хватает данных для формирования сертификатов.', true);
