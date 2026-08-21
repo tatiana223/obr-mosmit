@@ -42,6 +42,9 @@ services:
       BASE_PATH: /konkursy/krasota-bozhego-mira
       ORGANIZER_USER: ${KBM_ORGANIZER_USER:-organizer}
       ORGANIZER_PASSWORD: ${KBM_ORGANIZER_PASSWORD:-}
+      EGRUL_TIMEOUT_MS: ${EGRUL_TIMEOUT_MS:-20000}
+      EGRUL_CACHE_TTL_MS: ${EGRUL_CACHE_TTL_MS:-180000}
+      EGRUL_MIN_INTERVAL_MS: ${EGRUL_MIN_INTERVAL_MS:-400}
     volumes:
       - kbm_data:/app/data
 
