@@ -162,7 +162,7 @@ function localityText(participant) {
   return '';
 }
 
-/** занявшая I/II/III место / спецприз — Times New Roman 14 */
+/** I/II/III место / спецприз — Times New Roman 14 */
 function placeText(place) {
   let raw = String(place || '').trim();
   if (!raw) return '';
@@ -170,7 +170,7 @@ function placeText(place) {
   raw = raw.replace(/^занявш[аяуи]+й?\s+/i, '');
   raw = raw.replace(/\s*место$/i, '');
   if (!raw) return '';
-  return `занявшая ${raw} место`.replace(/\s+/g, ' ').trim();
+  return `${raw} место`.replace(/\s+/g, ' ').trim();
 }
 
 /** Победитель: I / II / III / спецприз */
