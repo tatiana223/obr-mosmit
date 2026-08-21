@@ -231,6 +231,8 @@ let editingId = null;
 let egrulSelected = false;
 let suggestItems = [];
 let suggestTimer = null;
+let egrulAbortController = null;
+let egrulRequestSeq = 0;
 let activeSuggestIndex = -1;
 let participantsCache = [];
 /** @type {Map<string, { fields: string[], reasons: string[] }>} */
@@ -1536,25 +1538,57 @@ function hasSecondSearchWord(value) {
     .filter(Boolean).length >= 2;
 }
 
+function egrulErrorMessage(payload, fallback = 'Ошибка поиска ЕГРЮЛ') {
+  const code = String(payload?.code || '').trim();
+  const message = String(payload?.error || payload?.message || '').trim();
+  if (code === 'busy' || code === 'timeout') {
+    return message || 'Сервис ЕГРЮЛ сейчас занят. Подождите немного и продолжите ввод.';
+  }
+  if (code === 'captcha') {
+    return message || 'ЕГРЮЛ запросил проверку. Повторите поиск чуть позже.';
+  }
+  return message || fallback;
+}
+
 async function fetchEgrulSuggestions(
   query,
-  { religiousOnly = false, locality = '', municipal = '', rfSubject = '' } = {}
+  {
+    religiousOnly = false,
+    locality = '',
+    municipal = '',
+    rfSubject = '',
+    signal = undefined,
+  } = {}
 ) {
   const params = new URLSearchParams({ q: query });
   if (religiousOnly) params.set('filter', 'religious');
   if (locality) params.set('locality', locality);
   if (municipal) params.set('municipal', municipal);
   if (rfSubject) params.set('rfSubject', rfSubject);
-  const response = await fetch(`/api/egrul-suggest?${params.toString()}`);
-  const data = await response.json();
+  const response = await fetch(`/api/egrul-suggest?${params.toString()}`, { signal });
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
   if (!response.ok) {
-    throw new Error(data.error || 'Ошибка поиска ЕГРЮЛ');
+    const error = new Error(egrulErrorMessage(data));
+    error.code = data?.code || 'unavailable';
+    throw error;
   }
   return Array.isArray(data) ? data : [];
 }
 
 function scheduleEgrulSearch() {
   clearTimeout(suggestTimer);
+  // Отменяем предыдущий in-flight, чтобы не мигать ошибками от устаревших ответов
+  // и не долбить ЕГРЮЛ параллельными запросами при быстром наборе.
+  if (egrulAbortController) {
+    egrulAbortController.abort();
+    egrulAbortController = null;
+  }
+
   const query = institutionName.value.trim();
   if (!usesEgrul() || !hasSecondSearchWord(query)) {
     hideSuggest();
@@ -1570,26 +1604,37 @@ function scheduleEgrulSearch() {
     workForm?.querySelector('[name="municipalFormation"]')?.value || ''
   ).trim();
   const rfSubject = String(workForm?.querySelector('[name="rfSubject"]')?.value || '').trim();
+  const requestSeq = (egrulRequestSeq += 1);
 
   suggestTimer = setTimeout(async () => {
+    const controller = new AbortController();
+    egrulAbortController = controller;
     try {
       const items = await fetchEgrulSuggestions(query, {
         religiousOnly,
         locality: religiousOnly ? locality : '',
         municipal: religiousOnly ? municipal : '',
         rfSubject,
+        signal: controller.signal,
       });
+      if (requestSeq !== egrulRequestSeq) return;
       if (institutionName.value.trim() !== query) return;
       hideEgrulWait();
       renderSuggest(items);
     } catch (error) {
+      if (error?.name === 'AbortError') return;
+      if (requestSeq !== egrulRequestSeq) return;
       if (institutionName.value.trim() !== query) return;
       hideEgrulWait();
-      institutionSuggest.innerHTML = `<li class="suggest-empty" role="presentation">${escapeHtml(error.message || 'Ошибка поиска ЕГРЮЛ')}</li>`;
+      institutionSuggest.innerHTML = `<li class="suggest-empty" role="presentation">${escapeHtml(
+        egrulErrorMessage(error, error.message || 'Ошибка поиска ЕГРЮЛ')
+      )}</li>`;
       institutionSuggest.hidden = false;
       positionInstitutionSuggest();
+    } finally {
+      if (egrulAbortController === controller) egrulAbortController = null;
     }
-  }, 350);
+  }, 550);
 }
 
 function updateInstitutionNameField({ clearValue = true } = {}) {

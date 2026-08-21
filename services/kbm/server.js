@@ -1146,13 +1146,258 @@ function itemMatchesRfSubject(item, rfSubject) {
   return hay.includes(needle);
 }
 
+/** Таймаут одного HTTP-запроса к egrul.nalog.ru (мс). */
+const EGRUL_TIMEOUT_MS = Math.max(5000, Number(process.env.EGRUL_TIMEOUT_MS) || 20000);
+/** TTL кэша успешных подсказок. */
+const EGRUL_CACHE_TTL_MS = Math.max(15000, Number(process.env.EGRUL_CACHE_TTL_MS) || 180000);
+/** Минимальный интервал между исходящими запросами к ФНС (снижает 429). */
+const EGRUL_MIN_INTERVAL_MS = Math.max(100, Number(process.env.EGRUL_MIN_INTERVAL_MS) || 400);
+const EGRUL_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
+const EGRUL_BASE = 'https://egrul.nalog.ru';
+
+class EgrulError extends Error {
+  constructor(message, { code = 'unavailable', status = 502, retryable = true } = {}) {
+    super(message);
+    this.name = 'EgrulError';
+    this.code = code;
+    this.status = status;
+    this.retryable = retryable;
+  }
+}
+
+const egrulCache = new Map();
+const egrulInflight = new Map();
+let egrulCookie = '';
+let egrulCookieAt = 0;
+let egrulGate = Promise.resolve();
+let egrulLastAt = 0;
+
+function egrulSleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function egrulCacheKey(query, opts = {}) {
+  return [
+    String(query || '').trim().toLocaleLowerCase('ru-RU'),
+    opts.religiousOnly ? '1' : '0',
+    String(opts.locality || '').trim().toLocaleLowerCase('ru-RU'),
+    String(opts.municipal || '').trim().toLocaleLowerCase('ru-RU'),
+    String(opts.region || '').trim(),
+    String(opts.rfSubject || '').trim().toLocaleLowerCase('ru-RU'),
+  ].join('|');
+}
+
+function readEgrulCache(key) {
+  const hit = egrulCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > EGRUL_CACHE_TTL_MS) {
+    egrulCache.delete(key);
+    return null;
+  }
+  return hit.items;
+}
+
+function writeEgrulCache(key, items) {
+  egrulCache.set(key, { at: Date.now(), items });
+  if (egrulCache.size > 200) {
+    const cutoff = Date.now() - EGRUL_CACHE_TTL_MS;
+    for (const [cacheKey, value] of egrulCache) {
+      if (value.at < cutoff) egrulCache.delete(cacheKey);
+    }
+  }
+}
+
+function pickSetCookies(response) {
+  if (typeof response.headers.getSetCookie === 'function') {
+    return response.headers.getSetCookie();
+  }
+  const single = response.headers.get('set-cookie');
+  return single ? [single] : [];
+}
+
+function mergeEgrulCookies(response) {
+  const parts = pickSetCookies(response)
+    .map((value) => String(value || '').split(';')[0].trim())
+    .filter(Boolean);
+  if (!parts.length) return egrulCookie;
+  const jar = new Map();
+  for (const part of String(egrulCookie || '')
+    .split(';')
+    .map((item) => item.trim())
+    .filter(Boolean)) {
+    const eq = part.indexOf('=');
+    if (eq > 0) jar.set(part.slice(0, eq), part);
+  }
+  for (const part of parts) {
+    const eq = part.indexOf('=');
+    if (eq > 0) jar.set(part.slice(0, eq), part);
+  }
+  egrulCookie = [...jar.values()].join('; ');
+  egrulCookieAt = Date.now();
+  return egrulCookie;
+}
+
+async function withEgrulGate(fn) {
+  const run = egrulGate.then(async () => {
+    const wait = Math.max(0, EGRUL_MIN_INTERVAL_MS - (Date.now() - egrulLastAt));
+    if (wait) await egrulSleep(wait);
+    egrulLastAt = Date.now();
+    return fn();
+  });
+  egrulGate = run.then(
+    () => undefined,
+    () => undefined
+  );
+  return run;
+}
+
+async function egrulFetch(url, { method = 'GET', headers = {}, body, timeoutMs = EGRUL_TIMEOUT_MS } = {}) {
+  return withEgrulGate(async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        method,
+        body,
+        // Не ходим по HTTP-редиректу с корня (/ → http://…/index.html) — он часто зависает.
+        redirect: 'manual',
+        signal: controller.signal,
+        headers: {
+          'User-Agent': EGRUL_UA,
+          Accept: 'application/json, text/javascript, */*; q=0.01',
+          'X-Requested-With': 'XMLHttpRequest',
+          Referer: `${EGRUL_BASE}/index.html`,
+          Origin: EGRUL_BASE,
+          ...(egrulCookie ? { Cookie: egrulCookie } : {}),
+          ...headers,
+        },
+      });
+      mergeEgrulCookies(response);
+      return response;
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        throw new EgrulError('ЕГРЮЛ не отвечает вовремя. Попробуйте ещё раз.', {
+          code: 'timeout',
+          status: 504,
+          retryable: true,
+        });
+      }
+      throw new EgrulError('Сервис ЕГРЮЛ перегружен. Попробуйте чуть позже.', {
+        code: 'busy',
+        status: 503,
+        retryable: true,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  });
+}
+
+async function ensureEgrulSession({ force = false } = {}) {
+  if (!force && egrulCookie && Date.now() - egrulCookieAt < 10 * 60 * 1000) {
+    return egrulCookie;
+  }
+  const response = await egrulFetch(`${EGRUL_BASE}/index.html`, {
+    headers: { Accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8' },
+    timeoutMs: Math.min(EGRUL_TIMEOUT_MS, 12000),
+  });
+  if (response.status >= 400) {
+    throw new EgrulError('Сервис ЕГРЮЛ временно недоступен. Попробуйте позже.', {
+      code: 'unavailable',
+      status: 502,
+      retryable: true,
+    });
+  }
+  try {
+    await response.arrayBuffer();
+  } catch {
+    /* ignore */
+  }
+  return egrulCookie;
+}
+
+async function readEgrulJson(response) {
+  const text = await response.text();
+  const contentType = String(response.headers.get('content-type') || '').toLowerCase();
+  const trimmed = text.trim();
+  if (
+    contentType.includes('text/html') ||
+    trimmed.startsWith('<!DOCTYPE') ||
+    trimmed.startsWith('<html')
+  ) {
+    throw new EgrulError('Сервис ЕГРЮЛ перегружен. Попробуйте чуть позже.', {
+      code: 'busy',
+      status: 503,
+      retryable: true,
+    });
+  }
+  try {
+    return trimmed ? JSON.parse(trimmed) : {};
+  } catch {
+    throw new EgrulError('Сервис ЕГРЮЛ временно недоступен. Попробуйте позже.', {
+      code: 'unavailable',
+      status: 502,
+      retryable: true,
+    });
+  }
+}
+
+function mapHttpStatusToEgrulError(status) {
+  if (status === 429) {
+    return new EgrulError('Сервис ЕГРЮЛ сейчас занят. Подождите пару секунд и повторите ввод.', {
+      code: 'busy',
+      status: 503,
+      retryable: true,
+    });
+  }
+  if (status >= 500) {
+    return new EgrulError('Сервис ЕГРЮЛ временно недоступен. Попробуйте позже.', {
+      code: 'unavailable',
+      status: 502,
+      retryable: true,
+    });
+  }
+  return new EgrulError('Сервис ЕГРЮЛ временно недоступен. Попробуйте позже.', {
+    code: 'unavailable',
+    status: 502,
+    retryable: status >= 500 || status === 429,
+  });
+}
+
+function mapEgrulRows(rows) {
+  return rows
+    .filter((row) => row?.k === 'ul' && (row?.n || row?.c) && !row?.e)
+    .map((row) => {
+      const name = String(row.n || row.c).trim();
+      const shortName = String(row.c || row.n || '').trim();
+      const address = String(row.a || '').trim();
+      const region = String(row.rn || '').trim();
+      const place = buildPlaceInfo(name, shortName, address, region);
+      return {
+        name,
+        shortName,
+        inn: String(row.i || '').trim(),
+        ogrn: String(row.o || '').trim(),
+        address,
+        region: place.region,
+        locality: place.locality,
+      };
+    });
+}
+
 async function searchEgrulOnce(searchQuery, { retries = 2, region = '' } = {}) {
   let lastError = null;
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     try {
       if (attempt > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 700 * attempt));
+        await egrulSleep(700 * attempt + Math.floor(Math.random() * 250));
+        if (lastError?.code === 'busy') {
+          await ensureEgrulSession({ force: true });
+        }
+      } else {
+        await ensureEgrulSession();
       }
 
       const body = new URLSearchParams({
@@ -1163,75 +1408,105 @@ async function searchEgrulOnce(searchQuery, { retries = 2, region = '' } = {}) {
         PreventChromeAutocomplete: '',
       });
 
-      const start = await fetch('https://egrul.nalog.ru/', {
+      const start = await egrulFetch(`${EGRUL_BASE}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          Accept: 'application/json, text/javascript, */*; q=0.01',
         },
         body,
       });
 
-      if (!start.ok) {
-        lastError = new Error('ЕГРЮЛ временно недоступен');
+      if (start.status >= 300 && start.status < 400) {
+        lastError = new EgrulError('Сервис ЕГРЮЛ временно недоступен. Попробуйте позже.', {
+          code: 'unavailable',
+          status: 502,
+          retryable: true,
+        });
         continue;
       }
 
-      const startJson = await start.json();
+      if (!start.ok) {
+        lastError = mapHttpStatusToEgrulError(start.status);
+        if (!lastError.retryable) throw lastError;
+        continue;
+      }
+
+      const startJson = await readEgrulJson(start);
       const token = startJson?.t;
       if (!token) {
         if (startJson?.captchaRequired) {
-          throw new Error('ЕГРЮЛ запросил проверку. Повторите поиск чуть позже.');
+          throw new EgrulError('ЕГРЮЛ запросил проверку. Повторите поиск чуть позже.', {
+            code: 'captcha',
+            status: 503,
+            retryable: false,
+          });
         }
         return [];
       }
 
       let rows = [];
+      let pollFailures = 0;
+      let sawOkEmpty = false;
       for (let i = 0; i < 12; i += 1) {
-        await new Promise((resolve) => setTimeout(resolve, 450));
-        const result = await fetch(`https://egrul.nalog.ru/search-result/${token}`, {
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-            Accept: 'application/json, text/javascript, */*; q=0.01',
-          },
+        await egrulSleep(450);
+        const result = await egrulFetch(`${EGRUL_BASE}/search-result/${token}`, {
+          timeoutMs: Math.min(EGRUL_TIMEOUT_MS, 12000),
         });
-        if (!result.ok) continue;
-        const data = await result.json();
-        rows = Array.isArray(data?.rows) ? data.rows : [];
-        if (rows.length) break;
+        if (!result.ok) {
+          pollFailures += 1;
+          if (result.status === 429) {
+            lastError = mapHttpStatusToEgrulError(429);
+            await egrulSleep(600);
+          }
+          continue;
+        }
+        try {
+          const data = await readEgrulJson(result);
+          rows = Array.isArray(data?.rows) ? data.rows : [];
+          sawOkEmpty = true;
+          if (rows.length) break;
+        } catch (error) {
+          pollFailures += 1;
+          lastError = error instanceof EgrulError ? error : lastError;
+        }
       }
 
-      return rows
-        .filter((row) => row?.k === 'ul' && (row?.n || row?.c) && !row?.e)
-        .map((row) => {
-          const name = String(row.n || row.c).trim();
-          const shortName = String(row.c || row.n || '').trim();
-          const address = String(row.a || '').trim();
-          const region = String(row.rn || '').trim();
-          const place = buildPlaceInfo(name, shortName, address, region);
-          return {
-            name,
-            shortName,
-            inn: String(row.i || '').trim(),
-            ogrn: String(row.o || '').trim(),
-            address,
-            region: place.region,
-            locality: place.locality,
-          };
-        });
+      if (!rows.length && pollFailures >= 8 && !sawOkEmpty) {
+        throw (
+          lastError ||
+          new EgrulError('Сервис ЕГРЮЛ перегружен. Попробуйте чуть позже.', {
+            code: 'busy',
+            status: 503,
+            retryable: true,
+          })
+        );
+      }
+
+      return mapEgrulRows(rows);
     } catch (error) {
-      if (error?.message?.includes('проверку')) throw error;
-      lastError = error instanceof Error ? error : new Error('ЕГРЮЛ временно недоступен');
+      if (error instanceof EgrulError && !error.retryable) throw error;
+      lastError =
+        error instanceof EgrulError
+          ? error
+          : new EgrulError('Сервис ЕГРЮЛ временно недоступен. Попробуйте позже.', {
+              code: 'unavailable',
+              status: 502,
+              retryable: true,
+            });
     }
   }
 
-  throw lastError || new Error('ЕГРЮЛ временно недоступен');
+  throw (
+    lastError ||
+    new EgrulError('Сервис ЕГРЮЛ временно недоступен. Попробуйте позже.', {
+      code: 'unavailable',
+      status: 502,
+      retryable: true,
+    })
+  );
 }
 
-async function searchEgrul(
+async function searchEgrulUncached(
   query,
   { religiousOnly = false, locality = '', municipal = '', region = '', rfSubject = '' } = {}
 ) {
@@ -1241,8 +1516,6 @@ async function searchEgrul(
   const applySubjectFilter = (items) => {
     if (!subjectFilter) return items;
     const matched = items.filter((item) => itemMatchesRfSubject(item, subjectFilter));
-    // Если регион задан кодом ФНС — доверяем API и мягко подчищаем хвост.
-    // Если кода нет — оставляем только совпавшие по тексту субъекта.
     if (regionCode) return matched.length ? matched : items;
     return matched;
   };
@@ -1261,7 +1534,7 @@ async function searchEgrul(
     const searchQuery = queries[index];
     try {
       if (index > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await egrulSleep(550);
       }
       const items = await searchEgrulOnce(searchQuery, { retries: 1, region: regionCode });
       for (const item of items) {
@@ -1269,7 +1542,6 @@ async function searchEgrul(
         const key = item.ogrn || item.inn || item.name;
         if (!byKey.has(key)) byKey.set(key, item);
       }
-      // Достаточно результатов с учётом населённого пункта — дальше не долбим ЕГРЮЛ
       if (place) {
         const matchedCount = [...byKey.values()].filter((item) =>
           itemMatchesPlace(item, place)
@@ -1296,6 +1568,28 @@ async function searchEgrul(
   }
 
   return applySubjectFilter(list).slice(0, 12);
+}
+
+async function searchEgrul(query, options = {}) {
+  const key = egrulCacheKey(query, options);
+  const cached = readEgrulCache(key);
+  if (cached) return cached;
+
+  if (egrulInflight.has(key)) {
+    return egrulInflight.get(key);
+  }
+
+  const pending = searchEgrulUncached(query, options)
+    .then((items) => {
+      writeEgrulCache(key, items);
+      return items;
+    })
+    .finally(() => {
+      egrulInflight.delete(key);
+    });
+
+  egrulInflight.set(key, pending);
+  return pending;
 }
 
 function cleanPlacePart(value) {
@@ -1393,7 +1687,12 @@ app.get('/api/egrul-suggest', async (req, res) => {
     });
     res.json(items);
   } catch (error) {
-    res.status(502).json({ error: error.message || 'Ошибка поиска ЕГРЮЛ' });
+    const status = Number(error?.status) || 502;
+    const code = String(error?.code || 'unavailable');
+    res.status(status >= 400 && status < 600 ? status : 502).json({
+      error: error?.message || 'Ошибка поиска ЕГРЮЛ',
+      code,
+    });
   }
 });
 
