@@ -55,6 +55,8 @@ function normalizeChurchDisplayCase(text) {
   lowerMidWord('собор(?:а|у|ом|е)?');
   lowerMidWord('кафедральн[а-яё]+');
   lowerMidWord('епархи[яиею]|епархий|епархией');
+  // округ / округа — нарицательное («Воскресенского округа», «городского округа»)
+  lowerMidWord('округ(?:а|у|ом|е)?');
 
   return value.replace(/\s+/g, ' ').trim();
 }
@@ -527,6 +529,10 @@ function capitalizeProperRu(value) {
   // Каждое словесное/дефисное собственное имя
   text = text.replace(/[А-ЯЁа-яёA-Za-z]+(?:-[А-ЯЁа-яёA-Za-z]+)*/g, (word) => {
     if (/^(г|с|д|п|пос)\.?$/i.test(word)) {
+      return word.toLocaleLowerCase('ru-RU');
+    }
+    // округ / округа — нарицательное в адресах и МО (не title-case)
+    if (/^округ(?:а|у|ом|е)?$/i.test(word)) {
       return word.toLocaleLowerCase('ru-RU');
     }
     return titleCaseRuWord(word);
