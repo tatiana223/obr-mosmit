@@ -150,19 +150,19 @@ function abbreviatePlaceName(raw, { role = 'auto' } = {}) {
   return value;
 }
 
-/** (г. о. / м. о. / г. …), — Times New Roman 14 */
+/** (г. о. / м. о. / г. …) — Times New Roman 14 */
 function localityText(participant) {
   const municipal = String(participant.municipalFormation || '').trim();
   const locality = String(participant.locality || '').trim();
 
   if (municipal) {
     const formatted = abbreviatePlaceName(municipal, { role: 'municipal' });
-    return formatted ? `(${formatted}),` : '';
+    return formatted ? `(${formatted})` : '';
   }
 
   if (locality) {
     const formatted = abbreviatePlaceName(locality, { role: 'locality' });
-    return formatted ? `(${formatted}),` : '';
+    return formatted ? `(${formatted})` : '';
   }
 
   return '';
