@@ -81,15 +81,67 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;');
 }
 
+const ORGANIZER_TABS = ['settings', 'access', 'winners', 'table'];
+const TAB_STORAGE_KEY = 'kbm-organizer-tab';
+const TAB_MESSAGE = 'kbm-organizer-tab';
+
+/** Accept ?tab=, #hash, and friendly aliases (e.g. participants → winners). */
+function normalizeOrganizerTab(raw) {
+  const value = String(raw || '')
+    .trim()
+    .replace(/^#/, '')
+    .toLowerCase();
+  if (value === 'participants') return 'winners';
+  return ORGANIZER_TABS.includes(value) ? value : '';
+}
+
+function readPersistedTab() {
+  const fromQuery = normalizeOrganizerTab(
+    new URLSearchParams(window.location.search).get('tab')
+  );
+  if (fromQuery) return fromQuery;
+
+  const fromHash = normalizeOrganizerTab(window.location.hash);
+  if (fromHash) return fromHash;
+
+  try {
+    const fromStorage = normalizeOrganizerTab(sessionStorage.getItem(TAB_STORAGE_KEY));
+    if (fromStorage) return fromStorage;
+  } catch {
+    /* ignore quota / private mode */
+  }
+
+  return 'settings';
+}
+
+function persistTab(tab) {
+  try {
+    sessionStorage.setItem(TAB_STORAGE_KEY, tab);
+  } catch {
+    /* ignore */
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('tab', tab);
+  if (normalizeOrganizerTab(url.hash) && normalizeOrganizerTab(url.hash) !== tab) {
+    url.hash = '';
+  }
+  window.history.replaceState({}, '', url);
+
+  const embedded =
+    window.parent !== window && new URLSearchParams(window.location.search).has('embed');
+  if (embedded) {
+    window.parent.postMessage({ type: TAB_MESSAGE, tab }, window.location.origin);
+  }
+}
+
 function setTab(tab) {
-  const next = ['settings', 'access', 'winners', 'table'].includes(tab) ? tab : 'settings';
+  const next = normalizeOrganizerTab(tab) || 'settings';
   tabButtons.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.tab === next));
   panels.forEach((panel) => {
     panel.hidden = panel.dataset.panel !== next;
   });
-  const url = new URL(window.location.href);
-  url.searchParams.set('tab', next);
-  window.history.replaceState({}, '', url);
+  persistTab(next);
   if (next === 'winners' || next === 'table') {
     loadParticipants().catch((error) => showStatus(tableStatus, error.message, true));
   }
@@ -862,7 +914,7 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-const initialTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
+const initialTab = readPersistedTab();
 setTab(initialTab);
 loadSettings().catch((error) => showStatus(settingsStatus, error.message, true));
 if (initialTab === 'winners' || initialTab === 'table') {
