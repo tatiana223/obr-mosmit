@@ -80,12 +80,18 @@ function abbreviatePlaceName(raw, { role = 'auto' } = {}) {
     .replace(/^(?:м|М)\s*\.\s*о\s*\.\s*/u, 'м. о. ')
     .replace(/^(?:го|ГО)\s+/u, 'г. о. ')
     .replace(/^(?:мо|МО)\s+/u, 'м. о. ')
+    .replace(/^(?:р|Р)\s*\.\s*[пП]\s*\.\s*/u, 'р.п. ')
     .replace(/^(?:г|Г)\s*\.\s*/u, 'г. ')
     .replace(/^(?:с|С)\s*\.\s*/u, 'с. ')
     .replace(/^(?:д|Д)\s*\.\s*/u, 'д. ')
     .replace(/^(?:пос|Пос)\s*\.\s*/u, 'пос. ');
 
-  if (/^г\.\s*о\./i.test(value) || /^м\.\s*о\./i.test(value) || /^(?:г|с|д|пос)\./i.test(value)) {
+  if (
+    /^г\.\s*о\./i.test(value) ||
+    /^м\.\s*о\./i.test(value) ||
+    /^р\.\s*п\./i.test(value) ||
+    /^(?:г|с|д|пос)\./i.test(value)
+  ) {
     return value.replace(/\s+/g, ' ').trim();
   }
 
