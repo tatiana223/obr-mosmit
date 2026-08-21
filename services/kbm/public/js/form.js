@@ -39,6 +39,7 @@ function normalizeChurchDisplayCase(text) {
 
   // Без \b: в JS граница слова не работает для кириллицы
   value = value
+    .replace(/(^|[\s(])[Рр]\s*\.\s*[Пп]\s*\.\s*/g, '$1р.п. ')
     .replace(/(^|[\s(])[Гг]\.\s*/g, '$1г. ')
     .replace(/(^|[\s(])[Сс]\.\s*/g, '$1с. ')
     .replace(/(^|[\s(])[Дд]\.\s*/g, '$1д. ')
@@ -495,12 +496,23 @@ function capitalizeProperRu(value) {
   let text = String(value ?? '');
   const protectedParts = [];
 
+  const protectAbbrev = (prefix, lead, trailingSpace) => {
+    const token = `\u0000${protectedParts.length}\u0000`;
+    protectedParts.push(prefix);
+    return `${lead}${token}${trailingSpace}`;
+  };
+
   // г.о. / м.о. (и варианты с пробелами / регистром) — целиком строчными
   text = text.replace(/(^|[\s(])([ГгМм])\s*\.\s*[Оо]\s*\./g, (match, lead, letter) => {
     const prefix = letter.toLocaleLowerCase('ru-RU') === 'м' ? 'м.о.' : 'г.о.';
-    const token = `\u0000${protectedParts.length}\u0000`;
-    protectedParts.push(prefix);
-    return `${lead}${token}`;
+    return protectAbbrev(prefix, lead, '');
+  });
+
+  // р.п. (рабочий посёлок) — строчными; пробел перед следующим словом, если был склеен
+  text = text.replace(/(^|[\s(])[Рр]\s*\.\s*[Пп]\s*\.(\s*)/g, (match, lead, ws, offset, full) => {
+    const next = full.charAt(offset + match.length);
+    const trailing = ws || (next && /[А-ЯЁа-яёA-Za-z]/.test(next) ? ' ' : '');
+    return protectAbbrev('р.п.', lead, trailing ? ' ' : '');
   });
 
   // Сокращения населённых пунктов — строчными
@@ -1507,12 +1519,16 @@ async function refreshParticipantsCache() {
   await syncCertificateButton();
 }
 
+function normalizeRpSettlementAbbrev(value) {
+  return String(value || '').replace(/(^|[\s(])[Рр]\s*\.\s*[Пп]\s*\.\s*/g, '$1р.п. ');
+}
+
 function selectSuggest(item) {
   const type = institutionType.value;
   institutionName.value =
     type === SUNDAY_SCHOOL_TYPE
       ? formatSundaySchoolInstitutionName(item.name || item.shortName || '')
-      : item.name;
+      : normalizeRpSettlementAbbrev(item.name || item.shortName || '');
   egrulSelected = true;
   hideSuggest();
   institutionName?.classList.remove('field-import-issue');
@@ -1673,7 +1689,13 @@ function applyParticipantFields(participant, { mode = 'full' } = {}) {
   workForm.locality.value = capitalizeProperRu(participant.locality || '');
   institutionType.value = participant.institutionType || '';
   updateInstitutionNameField({ clearValue: false });
-  institutionName.value = participant.institutionName || '';
+  {
+    const rawName = participant.institutionName || '';
+    institutionName.value =
+      participant.institutionType === SUNDAY_SCHOOL_TYPE && rawName
+        ? normalizeChurchDisplayCase(rawName)
+        : normalizeRpSettlementAbbrev(rawName);
+  }
   egrulSelected = usesEgrul(institutionType.value) && Boolean(institutionName.value);
   scheduleInstitutionFieldsResize();
 
@@ -2167,6 +2189,13 @@ excelImportBtn?.addEventListener('click', async () => {
 
     for (const entry of parsed.participants) {
       const body = { ...entry.payload, importedFromExcel: true };
+      body.municipalFormation = capitalizeProperRu(body.municipalFormation || '');
+      body.locality = capitalizeProperRu(body.locality || '');
+      if (body.institutionType === SUNDAY_SCHOOL_TYPE && body.institutionName) {
+        body.institutionName = normalizeChurchDisplayCase(body.institutionName);
+      } else if (body.institutionName) {
+        body.institutionName = normalizeRpSettlementAbbrev(body.institutionName);
+      }
       const displayName =
         `${body.lastName || ''} ${body.firstName || ''}`.trim() || 'без имени';
 
@@ -2647,8 +2676,13 @@ workForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  if (type === SUNDAY_SCHOOL_TYPE && nameValue && !/^воскресная\s+школа\b/i.test(nameValue)) {
-    nameValue = formatSundaySchoolInstitutionName(nameValue);
+  if (type === SUNDAY_SCHOOL_TYPE && nameValue) {
+    nameValue = /^воскресная\s+школа\b/i.test(nameValue)
+      ? normalizeChurchDisplayCase(nameValue)
+      : formatSundaySchoolInstitutionName(nameValue);
+    institutionName.value = nameValue;
+  } else if (nameValue) {
+    nameValue = normalizeRpSettlementAbbrev(nameValue);
     institutionName.value = nameValue;
   }
 
@@ -2667,6 +2701,7 @@ workForm.addEventListener('submit', async (event) => {
 
   applyFieldCapitalize(municipalFormationInput);
   syncMunicipalTypeCheckboxesFromInput();
+  applyFieldCapitalize(workForm?.querySelector('[name="locality"]'));
 
   const data = new FormData(workForm);
   const teacherPhone = String(teacherPhoneInput.value || '').trim();
@@ -2688,7 +2723,7 @@ workForm.addEventListener('submit', async (event) => {
     federalDistrict: data.get('federalDistrict'),
     rfSubject: data.get('rfSubject'),
     municipalFormation: capitalizeProperRu(data.get('municipalFormation')),
-    locality: data.get('locality'),
+    locality: capitalizeProperRu(data.get('locality')),
     nomination,
     institutionName: type === 'Самостоятельное участие' ? '' : nameValue,
     teacherName: data.get('teacherName'),
