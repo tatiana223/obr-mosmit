@@ -18,7 +18,7 @@ export function HomePage() {
         <h1>Образовательная деятельность<br /><span>Московской митрополии</span></h1>
       </div>
       <div className="official-hero-image">
-        <img src="/images/classroom-metropolitan-v6-quality.png" alt="Митрополит проводит занятие в православной школе"/>
+        <img src="/images/classroom-metropolitan-v7.jpg" alt="Митрополит с учащимися на занятии в православной школе"/>
       </div>
     </section>
 
