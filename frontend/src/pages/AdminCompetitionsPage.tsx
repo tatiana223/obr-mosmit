@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 export function AdminCompetitionsPage() {
   return (
     <>
-      <header className="page-header">
+      <header className="page-header page-header--compact">
         <div>
           <h1>Конкурсы</h1>
         </div>

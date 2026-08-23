@@ -72,11 +72,16 @@ export function CompetitionsPage() {
           </p>
         )}
         <div className="public-competitions-grid">
-          {pageItems.map((item) => (
-            <article className="public-competition-card" key={item.externalHref || item.id}>
+          {pageItems.map((item) => {
+            const isStrip = Boolean(item.externalHref) && !item.cover
+            return (
+            <article
+              className={`public-competition-card${isStrip ? ' public-competition-card--strip' : ''}`}
+              key={item.externalHref || item.id}
+            >
               {item.cover ? (
                 <img src={item.cover} alt={`Обложка конкурса «${item.title}»`} />
-              ) : (
+              ) : isStrip ? null : (
                 <div className="competition-placeholder" aria-hidden="true">
                   <span>Конкурс</span>
                 </div>
@@ -88,7 +93,7 @@ export function CompetitionsPage() {
                   </span>
                 )}
                 <h2>{item.title}</h2>
-                {item.description ? <p>{item.description}</p> : null}
+                {!isStrip && item.description ? <p>{item.description}</p> : null}
                 {item.externalHref ? (
                   <a className="button primary" href={item.externalHref}>
                     {item.ctaLabel || 'Подать заявку'}
@@ -107,7 +112,8 @@ export function CompetitionsPage() {
                 ) : null}
               </div>
             </article>
-          ))}
+            )
+          })}
         </div>
         <Pagination
           page={page}
