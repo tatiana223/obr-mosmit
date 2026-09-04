@@ -106,6 +106,38 @@ class AdminNewsApiControllerTest {
     }
 
     @Test
+    void galleryUploadAfterCreatePersists() throws Exception {
+        String body = mockMvc.perform(multipart("/api/admin/news")
+                        .param("title", "Новость с галереей")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p>")
+                        .param("slug", "")
+                        .param("status", "PUBLISHED")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String id = body.replaceAll("(?s).*\"id\"\\s*:\\s*(\\d+).*", "$1");
+        var photo = new MockMultipartFile(
+                "files",
+                "gallery.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00});
+
+        mockMvc.perform(multipart("/api/admin/media/news/" + id)
+                        .file(photo)
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0]").value(org.hamcrest.Matchers.startsWith("/uploads/")));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/news/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gallery[0]").value(org.hamcrest.Matchers.startsWith("/uploads/")));
+    }
+
+    @Test
     void createWithOversizedCoverReturnsReadableError() throws Exception {
         byte[] tooLarge = new byte[10 * 1024 * 1024 + 1];
         tooLarge[0] = (byte) 0xFF;

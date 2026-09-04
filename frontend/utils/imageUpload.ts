@@ -24,11 +24,30 @@ export function timeoutSignal(ms: number): AbortSignal {
     return controller.signal;
 }
 
+const COMPRESS_TIMEOUT_MS = 45_000;
+const COMPRESS_TIMEOUT_MESSAGE =
+    'Сжатие изображения слишком долго. Выберите файл меньшего размера и попробуйте снова.';
+
+/** Reject if `promise` does not settle within `ms` (compress must not spin forever). */
+export async function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+        return await Promise.race([
+            promise,
+            new Promise<T>((_, reject) => {
+                timer = setTimeout(() => reject(new Error(message)), ms);
+            }),
+        ]);
+    } finally {
+        if (timer !== undefined) clearTimeout(timer);
+    }
+}
+
 /**
  * Resize/compress oversized covers before multipart upload.
  * Keeps already-small files as-is; rejects files that stay above 10 MB.
  */
-export async function prepareCoverImage(file: File): Promise<File> {
+async function compressCoverImage(file: File): Promise<File> {
     if (!file.type.startsWith('image/')) {
         throw new Error('Можно загружать только изображения');
     }
@@ -84,6 +103,14 @@ export async function prepareCoverImage(file: File): Promise<File> {
     }
 }
 
+export async function prepareCoverImage(file: File): Promise<File> {
+    return withTimeout(compressCoverImage(file), COMPRESS_TIMEOUT_MS, COMPRESS_TIMEOUT_MESSAGE);
+}
+
 export async function prepareGalleryImages(files: File[]): Promise<File[]> {
-    return Promise.all(files.map((file) => prepareCoverImage(file)));
+    const out: File[] = [];
+    for (const file of files) {
+        out.push(await prepareCoverImage(file));
+    }
+    return out;
 }
