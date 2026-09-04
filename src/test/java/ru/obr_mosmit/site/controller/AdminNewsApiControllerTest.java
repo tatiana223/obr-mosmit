@@ -106,6 +106,31 @@ class AdminNewsApiControllerTest {
     }
 
     @Test
+    void createWithOversizedCoverReturnsReadableError() throws Exception {
+        byte[] tooLarge = new byte[10 * 1024 * 1024 + 1];
+        tooLarge[0] = (byte) 0xFF;
+        tooLarge[1] = (byte) 0xD8;
+        tooLarge[2] = (byte) 0xFF;
+        var image = new MockMultipartFile(
+                "image",
+                "huge.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                tooLarge);
+
+        mockMvc.perform(multipart("/api/admin/news")
+                        .file(image)
+                        .param("title", "Слишком большая обложка")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p>")
+                        .param("slug", "")
+                        .param("status", "DRAFT")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isBadRequest())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("10 МБ")));
+    }
+
+    @Test
     void createWithoutTitleReturnsReadableValidationError() throws Exception {
         mockMvc.perform(multipart("/api/admin/news")
                         .param("title", "")

@@ -7,6 +7,9 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class ApiValidationAdvice {
@@ -26,5 +29,27 @@ public class ApiValidationAdvice {
             message = "Проверьте заполнение формы";
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    ResponseEntity<String> handleStatus(ResponseStatusException exception) {
+        String message = exception.getReason() == null || exception.getReason().isBlank()
+                ? "Запрос не выполнен"
+                : exception.getReason();
+        return ResponseEntity.status(exception.getStatusCode()).body(message);
+    }
+
+    @ExceptionHandler({MaxUploadSizeExceededException.class, MultipartException.class})
+    ResponseEntity<String> handleUploadTooLarge(Exception exception) {
+        Throwable cause = exception;
+        while (cause != null) {
+            if (cause instanceof MaxUploadSizeExceededException) {
+                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                        .body("Изображение слишком большое. Максимум 10 МБ — уменьшите файл и попробуйте снова.");
+            }
+            cause = cause.getCause();
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Не удалось загрузить файл. Проверьте размер изображения (до 10 МБ) и формат.");
     }
 }
