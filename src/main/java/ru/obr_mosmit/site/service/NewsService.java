@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +24,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 public class NewsService {
+    private static final ZoneId MOSCOW = ZoneId.of("Europe/Moscow");
+
     private final NewsRepository repository;
     private final Path uploadDirectory;
 
@@ -37,9 +43,39 @@ public class NewsService {
         news.setTitle(form.getTitle().trim()); news.setSlug(slug);
         news.setSummary(form.getSummary() == null ? "" : form.getSummary().trim());
         news.setContent(form.getContent().trim()); news.setStatus(form.getStatus());
-        if (form.getStatus() == NewsStatus.PUBLISHED && news.getPublishedAt() == null) news.setPublishedAt(Instant.now());
+        applyPublishedAt(news, form);
         if (image != null && !image.isEmpty()) news.setCoverImageUrl(storeImage(image));
         return repository.save(news);
+    }
+
+    /**
+     * Custom publishedAt from the admin form wins when non-blank.
+     * Drafts may leave it empty (stays null until publish).
+     * Publishing with an empty date defaults to Instant.now().
+     */
+    private void applyPublishedAt(News news, NewsForm form) {
+        var raw = form.getPublishedAt();
+        if (raw != null && !raw.isBlank()) {
+            news.setPublishedAt(parsePublishedAt(raw.trim()));
+            return;
+        }
+        if (form.getStatus() == NewsStatus.PUBLISHED && news.getPublishedAt() == null) {
+            news.setPublishedAt(Instant.now());
+        }
+    }
+
+    private Instant parsePublishedAt(String value) {
+        try {
+            if (value.length() == 10) {
+                return LocalDate.parse(value).atStartOfDay(MOSCOW).toInstant();
+            }
+            if (value.length() == 16 && value.charAt(10) == 'T') {
+                return LocalDateTime.parse(value).atZone(MOSCOW).toInstant();
+            }
+            return Instant.parse(value);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(BAD_REQUEST, "Некорректная дата публикации");
+        }
     }
 
     public void delete(Long id) { repository.delete(get(id)); }

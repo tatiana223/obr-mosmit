@@ -78,6 +78,7 @@ public class AdminNewsApiController {
         String date = news.getPublishedAt() == null
                 ? "—"
                 : DATE.format(news.getPublishedAt().atZone(ZoneId.of("Europe/Moscow")));
+        String publishedAt = news.getPublishedAt() == null ? "" : news.getPublishedAt().toString();
         List<String> gallery = news.getGalleryUrls() == null || news.getGalleryUrls().isBlank()
                 ? List.of()
                 : List.of(news.getGalleryUrls().split("\\n"));
@@ -92,6 +93,7 @@ public class AdminNewsApiController {
                 gallery,
                 news.getStatus().name(),
                 date,
+                publishedAt,
                 news.getUpdatedAt().toString());
     }
 
@@ -105,5 +107,6 @@ public class AdminNewsApiController {
             List<String> gallery,
             String status,
             String date,
+            String publishedAt,
             String updatedAt) {}
 }

@@ -18,6 +18,25 @@ const SAVE_LABEL: Record<SavePhase, string> = {
   gallery: 'Загружаем фотографии…',
 }
 
+/** Format an ISO instant for {@code <input type="datetime-local">} in Europe/Moscow. */
+function toDatetimeLocalValue(iso?: string): string {
+  if (!iso?.trim()) return ''
+  const parsed = Date.parse(iso)
+  if (Number.isNaN(parsed)) return ''
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Moscow',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(parsed))
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`
+}
+
 export function NewsEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -27,6 +46,7 @@ export function NewsEditorPage() {
   const [content, setContent] = useState('')
   const [slug, setSlug] = useState('')
   const [status, setStatus] = useState<NewsStatus>('DRAFT')
+  const [publishedAt, setPublishedAt] = useState('')
   const [image, setImage] = useState<string>()
   const [gallery, setGallery] = useState<string[]>([])
   const [galleryFiles, setGalleryFiles] = useState<File[]>([])
@@ -45,6 +65,7 @@ export function NewsEditorPage() {
         setContent(item.content || '')
         setSlug(item.slug || '')
         setStatus(item.status)
+        setPublishedAt(toDatetimeLocalValue(item.publishedAt))
         setImage(item.image)
         setGallery(item.gallery || [])
       })
@@ -76,6 +97,7 @@ export function NewsEditorPage() {
       data.append('content', content)
       data.append('slug', slug)
       data.append('status', status)
+      data.append('publishedAt', publishedAt)
 
       if (imageFile) {
         const cover = await prepareCoverImage(imageFile)
@@ -98,6 +120,7 @@ export function NewsEditorPage() {
       }
 
       setStatus(saved.status)
+      setPublishedAt(toDatetimeLocalValue(saved.publishedAt))
       await queryClient.invalidateQueries({ queryKey: ['public-news'] })
       setNotice(
         saved.status === 'PUBLISHED'
@@ -179,6 +202,18 @@ export function NewsEditorPage() {
                 <option value="PUBLISHED">Опубликовано</option>
               </select>
             </label>
+            <label>
+              Дата публикации
+              <input
+                type="datetime-local"
+                value={publishedAt}
+                onChange={(e) => setPublishedAt(e.target.value)}
+              />
+            </label>
+            <p className="hint">
+              По московскому времени. Если пусто при публикации — ставится текущий момент. У черновика
+              дату можно не заполнять.
+            </p>
             <button
               className="button primary full"
               type="button"

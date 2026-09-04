@@ -14,6 +14,8 @@ export type AdminNewsItem = {
     gallery?: string[];
     status: 'PUBLISHED' | 'DRAFT';
     date: string;
+    /** ISO-8601 instant; empty for drafts without a publication date. */
+    publishedAt?: string;
     updatedAt: string;
 };
 

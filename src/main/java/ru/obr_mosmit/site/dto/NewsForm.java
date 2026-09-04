@@ -16,11 +16,14 @@ public class NewsForm {
     @NotBlank(message = "Введите текст новости")
     private String content;
     private NewsStatus status = NewsStatus.DRAFT;
+    /** Optional publication moment: yyyy-MM-dd, yyyy-MM-dd'T'HH:mm, or ISO-8601. Empty = leave unset / default on publish. */
+    private String publishedAt = "";
 
     public static NewsForm from(News news) {
         var form = new NewsForm();
         form.title = news.getTitle(); form.slug = news.getSlug(); form.summary = news.getSummary();
         form.content = news.getContent(); form.status = news.getStatus();
+        form.publishedAt = news.getPublishedAt() == null ? "" : news.getPublishedAt().toString();
         return form;
     }
     public String getTitle() { return title; }
@@ -33,4 +36,6 @@ public class NewsForm {
     public void setContent(String content) { this.content = content; }
     public NewsStatus getStatus() { return status; }
     public void setStatus(NewsStatus status) { this.status = status; }
+    public String getPublishedAt() { return publishedAt; }
+    public void setPublishedAt(String publishedAt) { this.publishedAt = publishedAt; }
 }
