@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,7 +52,7 @@ public class AdminNewsApiController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     AdminNewsDto create(
             @Valid @ModelAttribute NewsForm form,
-            @RequestPart(required = false) MultipartFile image) {
+            @RequestParam(value = "image", required = false) MultipartFile image) {
         return dto(service.save(null, form, image));
     }
 
@@ -61,7 +60,7 @@ public class AdminNewsApiController {
     AdminNewsDto update(
             @PathVariable Long id,
             @Valid @ModelAttribute NewsForm form,
-            @RequestPart(required = false) MultipartFile image) {
+            @RequestParam(value = "image", required = false) MultipartFile image) {
         return dto(service.save(id, form, image));
     }
 
