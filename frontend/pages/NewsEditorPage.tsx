@@ -219,7 +219,11 @@ export function NewsEditorPage() {
               </span>
             </div>
             {id ? (
-              <MediaGalleryUploader endpoint={`/api/admin/media/news/${id}`} images={gallery} />
+              <MediaGalleryUploader
+                endpoint={`/api/admin/media/news/${id}`}
+                images={gallery}
+                onChange={setGallery}
+              />
             ) : (
               <div className="media-uploader">
                 <div className="media-preview-grid">

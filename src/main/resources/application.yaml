@@ -19,9 +19,9 @@ spring:
       initialize-schema: always
   servlet:
     multipart:
-      # Match admin UI (covers up to 10 MB); default Spring limit is 1 MB.
+      # Per-file 10 MB; request headroom for form fields + one image (gallery uploads one-by-one).
       max-file-size: 10MB
-      max-request-size: 25MB
+      max-request-size: 50MB
       file-size-threshold: 256KB
 
 server:

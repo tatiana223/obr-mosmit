@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { loadAdminNewsItem, saveAdminNews, uploadNewsGallery } from '../../api/adminNewsApi'
-import { htmlToPlainText } from '../../utils/plainText'
-import { prepareCoverImage, prepareGalleryImages } from '../../utils/imageUpload'
-import { RichTextEditor } from '../../components/RichTextEditor'
-import { MediaGalleryUploader } from '../../components/MediaUploaders'
+import { loadAdminNewsItem, saveAdminNews, uploadNewsGallery } from '../api/adminNewsApi'
+import { htmlToPlainText } from '../utils/plainText'
+import { prepareCoverImage, prepareGalleryImages } from '../utils/imageUpload'
+import { RichTextEditor } from '../components/RichTextEditor'
+import { MediaGalleryUploader } from '../components/MediaUploaders'
 
 type NewsStatus = 'PUBLISHED' | 'DRAFT'
 type SavePhase = 'idle' | 'compressing' | 'saving' | 'gallery'
@@ -219,7 +219,11 @@ export function NewsEditorPage() {
               </span>
             </div>
             {id ? (
-              <MediaGalleryUploader endpoint={`/api/admin/media/news/${id}`} images={gallery} />
+              <MediaGalleryUploader
+                endpoint={`/api/admin/media/news/${id}`}
+                images={gallery}
+                onChange={setGallery}
+              />
             ) : (
               <div className="media-uploader">
                 <div className="media-preview-grid">

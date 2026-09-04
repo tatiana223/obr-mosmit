@@ -52,4 +52,12 @@ public class ApiValidationAdvice {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Не удалось загрузить файл. Проверьте размер изображения (до 10 МБ) и формат.");
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    ResponseEntity<String> handleBadArgument(IllegalArgumentException exception) {
+        String message = exception.getMessage() == null || exception.getMessage().isBlank()
+                ? "Некорректный запрос"
+                : exception.getMessage();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+    }
 }

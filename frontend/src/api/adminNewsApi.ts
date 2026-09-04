@@ -61,18 +61,29 @@ export async function saveAdminNews(id: string | undefined, data: FormData): Pro
 }
 
 export async function uploadNewsGallery(newsId: number, files: File[]): Promise<string[]> {
-    const photos = new FormData();
-    files.forEach((file) => photos.append('files', file));
-    const response = await fetchAdmin(`/api/admin/media/news/${newsId}`, {
-        method: 'POST',
-        credentials: 'include',
-        body: photos,
-        signal: timeoutSignal(SAVE_TIMEOUT_MS),
-    });
-    if (!response.ok) {
-        throw new Error((await response.text()).trim() || 'Новость сохранена, но фотографии загрузить не удалось');
+    // Upload one image per request so multi-photo galleries stay under multipart max-request-size.
+    let urls: string[] = [];
+    for (const file of files) {
+        const photos = new FormData();
+        photos.append('files', file);
+        const response = await fetchAdmin(`/api/admin/media/news/${newsId}`, {
+            method: 'POST',
+            credentials: 'include',
+            body: photos,
+            signal: timeoutSignal(SAVE_TIMEOUT_MS),
+        });
+        if (response.status === 401 || response.status === 403) {
+            throw new Error('Необходимо войти как администратор');
+        }
+        if (!response.ok) {
+            throw new Error(
+                (await response.text()).trim() ||
+                    'Новость сохранена, но фотографии загрузить не удалось',
+            );
+        }
+        urls = await response.json();
     }
-    return response.json();
+    return urls;
 }
 
 export async function deleteAdminNews(id: number) {
