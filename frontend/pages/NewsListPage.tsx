@@ -8,12 +8,19 @@ const PAGE_SIZE = 12;
 
 type DateOrder = 'desc' | 'asc';
 
-/** Parse admin date `dd.MM.yyyy` (or «—») into a comparable number. */
-function dateSortKey(date: string): number {
-    const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(date.trim());
-    if (!match) return Number.NEGATIVE_INFINITY;
-    const [, day, month, year] = match;
-    return Number(year) * 10000 + Number(month) * 100 + Number(day);
+/**
+ * Sort by publication date (`dd.MM.yyyy`). Drafts without publishedAt use
+ * `updatedAt` so newly saved items stay near the top instead of vanishing
+ * to the last page among a long archive.
+ */
+function newsSortKey(item: AdminNewsItem): number {
+    const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(item.date.trim());
+    if (match) {
+        const [, day, month, year] = match;
+        return Date.UTC(Number(year), Number(month) - 1, Number(day));
+    }
+    const updated = Date.parse(item.updatedAt);
+    return Number.isFinite(updated) ? updated : 0;
 }
 
 export function NewsListPage() {
@@ -29,9 +36,9 @@ export function NewsListPage() {
         const filtered = news.filter(n => n.title.toLocaleLowerCase('ru').includes(query.trim().toLocaleLowerCase('ru')) && (status === 'ALL' || n.status === status));
         const direction = dateOrder === 'desc' ? -1 : 1;
         return [...filtered].sort((a, b) => {
-            const byDate = (dateSortKey(a.date) - dateSortKey(b.date)) * direction;
+            const byDate = (newsSortKey(a) - newsSortKey(b)) * direction;
             if (byDate !== 0) return byDate;
-            return (b.id - a.id) * direction;
+            return dateOrder === 'desc' ? b.id - a.id : a.id - b.id;
         });
     }, [news, query, status, dateOrder]);
     const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
