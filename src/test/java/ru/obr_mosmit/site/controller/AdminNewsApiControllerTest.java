@@ -48,7 +48,39 @@ class AdminNewsApiControllerTest {
                         .with(user("admin@example.ru").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"))
-                .andExpect(jsonPath("$.date").value(org.hamcrest.Matchers.not("—")));
+                .andExpect(jsonPath("$.date").value(org.hamcrest.Matchers.not("—")))
+                .andExpect(jsonPath("$.publishedAt").value(org.hamcrest.Matchers.not("")));
+    }
+
+    @Test
+    void createPublishedWithCustomDatePersists() throws Exception {
+        mockMvc.perform(multipart("/api/admin/news")
+                        .param("title", "Новость с датой")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p>")
+                        .param("slug", "")
+                        .param("status", "PUBLISHED")
+                        .param("publishedAt", "2024-03-15T10:30")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.date").value("15.03.2024"))
+                .andExpect(jsonPath("$.publishedAt").value(org.hamcrest.Matchers.not("")));
+    }
+
+    @Test
+    void draftWithoutDateLeavesPublishedAtEmpty() throws Exception {
+        mockMvc.perform(multipart("/api/admin/news")
+                        .param("title", "Черновик без даты")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p>")
+                        .param("slug", "")
+                        .param("status", "DRAFT")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DRAFT"))
+                .andExpect(jsonPath("$.date").value("—"))
+                .andExpect(jsonPath("$.publishedAt").value(""));
     }
 
     @Test
