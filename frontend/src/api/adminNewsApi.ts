@@ -31,8 +31,9 @@ export async function loadAdminNewsItem(id: string): Promise<AdminNewsItem> {
 }
 
 export async function saveAdminNews(id: string | undefined, data: FormData): Promise<AdminNewsItem> {
+    // Always POST: multipart bodies are only parsed for POST (PUT left updates unbound).
     return (await check(await fetch(id ? `/api/admin/news/${id}` : '/api/admin/news', {
-        method: id ? 'PUT' : 'POST',
+        method: 'POST',
         credentials: 'include',
         body: data,
     }))).json();
