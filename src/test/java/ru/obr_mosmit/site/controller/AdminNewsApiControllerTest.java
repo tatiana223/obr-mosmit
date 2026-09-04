@@ -52,6 +52,39 @@ class AdminNewsApiControllerTest {
     }
 
     @Test
+    void publishExistingDraftViaPostUpdateAppearsPublic() throws Exception {
+        String body = mockMvc.perform(multipart("/api/admin/news")
+                        .param("title", "Черновик для публикации")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p>")
+                        .param("slug", "")
+                        .param("status", "DRAFT")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DRAFT"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String id = body.replaceAll("(?s).*\"id\"\\s*:\\s*(\\d+).*", "$1");
+
+        mockMvc.perform(multipart("/api/admin/news/" + id)
+                        .param("title", "Черновик для публикации")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p>")
+                        .param("slug", "")
+                        .param("status", "PUBLISHED")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.date").value(org.hamcrest.Matchers.not("—")));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/news/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Черновик для публикации"));
+    }
+
+    @Test
     void createWithCoverImagePersists() throws Exception {
         var image = new MockMultipartFile(
                 "image",
