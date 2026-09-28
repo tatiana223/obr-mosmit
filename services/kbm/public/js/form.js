@@ -950,8 +950,14 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;');
 }
 
+const DEANERY_RENAMES = {
+  Каширское: 'Каширское 1',
+  Раменское: 'Раменское 1',
+};
+
 function normalizeDeanery(value) {
-  return String(value ?? '').trim();
+  const key = String(value ?? '').trim();
+  return DEANERY_RENAMES[key] || key;
 }
 
 const SELECTION_STORAGE_KEY = 'kbm-form-selection';
@@ -1139,13 +1145,14 @@ function restoreStoredSelection() {
   }
 
   if (stored.deanery) {
-    const hasDeanery = [...deanerySelect.options].some((opt) => opt.value === stored.deanery);
+    const mapped = normalizeDeanery(stored.deanery);
+    const hasDeanery = [...deanerySelect.options].some((opt) => opt.value === mapped);
     if (hasDeanery) {
       suppressDeaneryChange = true;
-      deanerySelect.value = stored.deanery;
+      deanerySelect.value = mapped;
       suppressDeaneryChange = false;
-      draft.deanery = stored.deanery;
-      lastConfirmedDeanery = stored.deanery;
+      draft.deanery = mapped;
+      lastConfirmedDeanery = mapped;
     }
   }
 }
@@ -3024,7 +3031,7 @@ deanerySelect.addEventListener('change', async () => {
 });
 
 async function loadDeaneries() {
-  const response = await fetch('/deaneries.json');
+  const response = await fetch('/deaneries.json?v=20260928-deaneries');
   const list = await response.json();
   if (!Array.isArray(list)) return;
 

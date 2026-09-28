@@ -57,17 +57,27 @@ const DEFAULT_DEANERIES = [
   'Жуковское',
   'Зарайское 1',
   'Зарайское 2',
-  'Каширское',
+  'Каширское 1',
+  'Каширское 2',
   'Коломенское 1',
   'Коломенское 2',
   'Коломенское 3',
+  'Коломенское 4',
   'Луховицкое 1',
   'Луховицкое 2',
   'Монастырское',
   'Озерское',
-  'Раменское',
+  'Раменское 1',
+  'Раменское 2',
+  'Раменское 3',
   'Серебряно-Прудское',
 ];
+
+/** Старые названия в данных и в уже сохранённых кодах — не перевыдавать коды. */
+const DEANERY_RENAMES = {
+  Каширское: 'Каширское 1',
+  Раменское: 'Раменское 1',
+};
 
 const DEFAULT_SETTINGS = {
   brand: 'Красота Божьего мира',
@@ -108,6 +118,60 @@ if (!fs.existsSync(DEANERY_ACCESS_FILE)) {
   fs.writeFileSync(DEANERY_ACCESS_FILE, JSON.stringify({ codes: {} }, null, 2), 'utf8');
 }
 
+function canonicalDeanery(value) {
+  const key = String(value || '').trim();
+  return DEANERY_RENAMES[key] || key;
+}
+
+function migrateRenamedDeaneries() {
+  const store = readAccessStore();
+  let accessChanged = false;
+  for (const [from, to] of Object.entries(DEANERY_RENAMES)) {
+    if (store.codes[from]?.code && !store.codes[to]?.code) {
+      store.codes[to] = { ...store.codes[from] };
+      accessChanged = true;
+    }
+  }
+  if (accessChanged) {
+    writeAccessStore(store);
+  }
+
+  const participants = readJson(DATA_FILE, []);
+  let participantsChanged = false;
+  for (const item of participants) {
+    const next = canonicalDeanery(item.deanery);
+    if (next && next !== item.deanery) {
+      item.deanery = next;
+      participantsChanged = true;
+    }
+  }
+  if (participantsChanged) {
+    writeJson(DATA_FILE, participants);
+  }
+
+  const meta = readJson(META_FILE, {});
+  let metaChanged = false;
+  const submissions = { ...(meta.submissions || {}) };
+  for (const [from, to] of Object.entries(DEANERY_RENAMES)) {
+    if (submissions[from] && !submissions[to]) {
+      submissions[to] = submissions[from];
+      delete submissions[from];
+      metaChanged = true;
+    } else if (submissions[from] && submissions[to]) {
+      delete submissions[from];
+      metaChanged = true;
+    }
+  }
+  const nextMetaDeanery = canonicalDeanery(meta.deanery);
+  if (nextMetaDeanery !== (meta.deanery || '')) {
+    meta.deanery = nextMetaDeanery;
+    metaChanged = true;
+  }
+  if (metaChanged) {
+    writeJson(META_FILE, { ...meta, submissions });
+  }
+}
+
 function listDeaneries() {
   const fromFile = readJson(DEANERIES_FILE, null);
   if (Array.isArray(fromFile) && fromFile.length) {
@@ -144,7 +208,7 @@ function generateAccessCode(length = 8) {
 }
 
 function setDeaneryAccessCode(deanery, code = generateAccessCode()) {
-  const key = String(deanery || '').trim();
+  const key = canonicalDeanery(deanery);
   if (!key) return null;
   const store = readAccessStore();
   const now = new Date().toISOString();
@@ -159,9 +223,11 @@ function setDeaneryAccessCode(deanery, code = generateAccessCode()) {
 }
 
 function getDeaneryAccessEntry(deanery) {
-  const key = String(deanery || '').trim();
+  const requested = String(deanery || '').trim();
+  const key = canonicalDeanery(requested);
   if (!key) return null;
-  const entry = readAccessStore().codes[key];
+  const codes = readAccessStore().codes;
+  const entry = codes[key] || (requested && requested !== key ? codes[requested] : null);
   if (!entry?.code) return null;
   return {
     deanery: key,
@@ -199,8 +265,8 @@ function decodeDeaneryHeader(value) {
 
 function readDeaneryFromRequest(req, fallback = '') {
   const fromHeader = decodeDeaneryHeader(req.headers['x-deanery']);
-  if (fromHeader) return fromHeader;
-  return String(req.body?.deanery || req.query?.deanery || fallback || '').trim();
+  if (fromHeader) return canonicalDeanery(fromHeader);
+  return canonicalDeanery(req.body?.deanery || req.query?.deanery || fallback || '');
 }
 
 function readAccessCodeFromRequest(req) {
@@ -227,7 +293,7 @@ function requireDeaneryAccessForParticipantId(req, res, next) {
   if (!person) {
     return res.status(404).json({ error: 'Участник не найден' });
   }
-  const deanery = String(person.deanery || '').trim();
+  const deanery = canonicalDeanery(person.deanery);
   req.kbmParticipant = person;
   req.headers['x-deanery'] = deanery;
   if (!deaneryAccessRequired(deanery)) return next();
@@ -477,7 +543,7 @@ app.get('/api/organizer/deanery-access', requireOrganizerAuth, (_req, res) => {
 });
 
 app.post('/api/organizer/deanery-access/generate', requireOrganizerAuth, (req, res) => {
-  const deanery = String(req.body?.deanery || '').trim();
+  const deanery = canonicalDeanery(req.body?.deanery);
   if (!deanery) {
     return res.status(400).json({ error: 'Не указано благочиние' });
   }
@@ -2140,6 +2206,8 @@ app.get('/organizer.html', requireOrganizerAuth, (_req, res) => sendHtml(res, 'o
 app.get('/admin.html', requireOrganizerAuth, (_req, res) => sendHtml(res, 'admin.html'));
 app.get('/certificates.html', (_req, res) => sendHtml(res, 'certificates.html'));
 app.get('/certificates-preview.html', (_req, res) => sendHtml(res, 'certificates-preview.html'));
+
+migrateRenamedDeaneries();
 
 app.listen(PORT, HOST, () => {
   const origin = `http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`;
