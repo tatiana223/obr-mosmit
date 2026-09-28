@@ -103,6 +103,21 @@ async function compressCoverImage(file: File): Promise<File> {
     }
 }
 
+export function parseUploadedMediaUrl(raw: string): string {
+  const text = raw.trim()
+  if (!text) {
+    throw new Error('Сервер не вернул адрес изображения')
+  }
+  if (text.startsWith('{')) {
+    const data = JSON.parse(text) as { url?: string }
+    if (!data.url) {
+      throw new Error('Сервер не вернул адрес изображения')
+    }
+    return data.url
+  }
+  return text.replace(/^"|"$/g, '').replace(/\\\//g, '/')
+}
+
 export async function prepareCoverImage(file: File): Promise<File> {
     return withTimeout(compressCoverImage(file), COMPRESS_TIMEOUT_MS, COMPRESS_TIMEOUT_MESSAGE);
 }
