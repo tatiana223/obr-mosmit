@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   isAbortOrTimeoutError,
+  parseUploadedMediaUrl,
   prepareCoverImage,
   prepareGalleryImages,
   SAVE_TIMEOUT_MESSAGE,
@@ -107,6 +108,8 @@ export function CoverUploader({ endpoint, image, onChange }: CoverProps) {
     if (!file) return
     setBusy(true)
     setError('')
+    const preview = URL.createObjectURL(file)
+    setSrc(preview)
     try {
       const prepared = await prepareCoverImage(file)
       const data = new FormData()
@@ -120,22 +123,24 @@ export function CoverUploader({ endpoint, image, onChange }: CoverProps) {
       if (response.status === 401 || response.status === 403) {
         throw new Error('Необходимо войти как администратор')
       }
+      const raw = (await response.text()).trim()
       if (!response.ok) {
         throw new Error(
-          (await response.text()).trim() ||
-            'Не удалось загрузить обложку. Проверьте размер (до 10 МБ) и попробуйте снова.',
+          raw || 'Не удалось загрузить обложку. Проверьте размер (до 10 МБ) и попробуйте снова.',
         )
       }
-      const url = (await response.text()).trim()
+      const url = parseUploadedMediaUrl(raw)
       setSrc(url)
       onChange?.(url)
     } catch (err) {
+      setSrc(image)
       if (isAbortOrTimeoutError(err)) {
         setError(SAVE_TIMEOUT_MESSAGE)
       } else {
         setError(err instanceof Error ? err.message : 'Не удалось загрузить обложку')
       }
     } finally {
+      URL.revokeObjectURL(preview)
       setBusy(false)
     }
   }
@@ -143,7 +148,7 @@ export function CoverUploader({ endpoint, image, onChange }: CoverProps) {
   return (
     <div className="media-uploader cover-uploader">
       {error && <p className="form-error">{error}</p>}
-      {src && <img src={src} alt="Обложка" />}
+      {src && <img src={src} alt="Обложка" key={src} />}
       <label className="button secondary">
         {busy ? 'Загрузка…' : 'Выбрать обложку'}
         <input

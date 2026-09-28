@@ -22,8 +22,7 @@ public class MediaStorageService {
     }
 
     public String store(MultipartFile file) {
-        if (file == null || file.isEmpty() || file.getContentType() == null
-                || !file.getContentType().startsWith("image/")) {
+        if (file == null || file.isEmpty() || !isImage(file)) {
             throw new IllegalArgumentException("Можно загружать только изображения");
         }
         if (file.getSize() > MAX_IMAGE_SIZE) {
@@ -56,5 +55,15 @@ public class MediaStorageService {
         } catch (IOException exception) {
             throw new IllegalStateException("Не удалось сохранить файл", exception);
         }
+    }
+
+    private boolean isImage(MultipartFile file) {
+        String type = file.getContentType();
+        if (type != null && type.startsWith("image/")) {
+            return true;
+        }
+        String name = Objects.requireNonNullElse(file.getOriginalFilename(), "").toLowerCase();
+        return name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png")
+                || name.endsWith(".webp") || name.endsWith(".gif");
     }
 }

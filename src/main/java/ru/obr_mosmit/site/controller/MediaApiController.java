@@ -3,6 +3,7 @@ package ru.obr_mosmit.site.controller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,20 +57,20 @@ public class MediaApiController {
         return urls;
     }
 
-    @PostMapping("/schools/{id}/cover")
-    String schoolCover(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/schools/{id}/cover", produces = MediaType.APPLICATION_JSON_VALUE)
+    MediaUrlDto schoolCover(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         var item = schools.findById(id).orElseThrow();
         item.setImageUrl(storage.store(file));
         schools.save(item);
-        return item.getImageUrl();
+        return new MediaUrlDto(item.getImageUrl());
     }
 
-    @PostMapping("/competitions/{id}")
-    String competitionCover(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/competitions/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    MediaUrlDto competitionCover(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         var item = competitions.findById(id).orElseThrow();
         item.setCoverImageUrl(storage.store(file));
         competitions.save(item);
-        return item.getCoverImageUrl();
+        return new MediaUrlDto(item.getCoverImageUrl());
     }
 
     @PostMapping("/competitions/{id}/gallery")
@@ -81,12 +82,12 @@ public class MediaApiController {
         return urls;
     }
 
-    @PostMapping("/courses/{id}")
-    String courseCover(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/courses/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    MediaUrlDto courseCover(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         var item = courses.findById(id).orElseThrow();
         item.setCoverImageUrl(storage.store(file));
         courses.save(item);
-        return item.getCoverImageUrl();
+        return new MediaUrlDto(item.getCoverImageUrl());
     }
 
     @PostMapping("/courses/{id}/gallery")
@@ -112,4 +113,6 @@ public class MediaApiController {
                         ? List.of()
                         : Arrays.asList(value.split("\\n")));
     }
+
+    public record MediaUrlDto(String url) {}
 }

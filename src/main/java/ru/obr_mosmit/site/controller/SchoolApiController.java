@@ -82,7 +82,7 @@ public class SchoolApiController {
         return repository.findById(id).map(school -> {
             school.setTitle(request.title());
             school.setSummary(value(request.summary()));
-            if (request.image() != null) school.setImageUrl(request.image());
+            applyCover(school, request.image());
             repository.save(school);
 
             detailRepository.deleteAllBySchoolId(id);
@@ -135,6 +135,39 @@ public class SchoolApiController {
                 item.getImageUrl(),
                 split(item.getGalleryUrls()),
                 sections);
+    }
+
+    /**
+     * Cover is uploaded via POST /api/admin/media/schools/{id}/cover.
+     * The editor JSON often still carries the previous (imported) URL; never
+     * replace a newly stored /uploads/ file with that stale remote path.
+     */
+    private void applyCover(School school, String incomingRaw) {
+        String incoming = normalizeMediaUrl(incomingRaw);
+        if (incoming.isBlank()) {
+            return;
+        }
+        String current = school.getImageUrl();
+        boolean incomingLocal = incoming.startsWith("/uploads/");
+        boolean currentLocal = current != null && current.startsWith("/uploads/");
+        if (incomingLocal || !currentLocal) {
+            school.setImageUrl(incoming);
+        }
+    }
+
+    static String normalizeMediaUrl(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+            trimmed = trimmed.substring(1, trimmed.length() - 1);
+        }
+        int query = trimmed.indexOf('?');
+        if (query >= 0) {
+            trimmed = trimmed.substring(0, query);
+        }
+        return trimmed.replace("\\/", "/");
     }
 
     private String value(String value) {
