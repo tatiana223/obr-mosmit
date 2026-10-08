@@ -57,6 +57,25 @@ public class MediaStorageService {
         }
     }
 
+    public void deleteStored(String url) {
+        if (url == null || !url.startsWith("/uploads/")) {
+            return;
+        }
+        String name = url.substring("/uploads/".length());
+        if (name.isBlank() || name.contains("/") || name.contains("\\") || name.contains("..")) {
+            return;
+        }
+        Path target = directory.resolve(name).normalize();
+        if (!target.startsWith(directory)) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(target);
+        } catch (IOException ignored) {
+            // Gallery/cover rows still drop even if the file is already gone.
+        }
+    }
+
     private boolean isImage(MultipartFile file) {
         String type = file.getContentType();
         if (type != null && type.startsWith("image/")) {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { loadAdminNewsItem, saveAdminNews, uploadNewsGallery } from '../api/adminNewsApi'
+import { deleteNewsCover, loadAdminNewsItem, saveAdminNews, uploadNewsGallery } from '../api/adminNewsApi'
 import { htmlToPlainText } from '../utils/plainText'
 import { prepareCoverImage, prepareGalleryImages } from '../utils/imageUpload'
 import { RichTextEditor } from '../components/RichTextEditor'
@@ -85,6 +85,20 @@ export function NewsEditorPage() {
   }
   const chooseGallery = (files: FileList | null) =>
     setGalleryFiles(files ? Array.from(files).filter((file) => file.type.startsWith('image/')) : [])
+
+  const removeCover = async () => {
+    if (!image || !confirm('Удалить обложку?')) return
+    setError('')
+    try {
+      if (id && image && !image.startsWith('blob:')) {
+        await deleteNewsCover(id)
+      }
+      setImageFile(undefined)
+      setImage(undefined)
+    } catch (e) {
+      setError((e as Error).message)
+    }
+  }
 
   const save = async () => {
     setError('')
@@ -243,6 +257,11 @@ export function NewsEditorPage() {
               )}
               <input type="file" accept="image/*" onChange={onFile} />
             </label>
+            {image && (
+              <button className="text-button danger" type="button" disabled={saving} onClick={() => void removeCover()}>
+                Удалить обложку
+              </button>
+            )}
             <p className="hint">JPG, PNG или WebP · крупные файлы сжимаются автоматически · до 10 МБ</p>
           </section>
           <section className="surface setting-card">
@@ -263,11 +282,19 @@ export function NewsEditorPage() {
               <div className="media-uploader">
                 <div className="media-preview-grid">
                   {galleryFiles.map((file, index) => (
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt={`Новая фотография ${index + 1}`}
-                      key={`${file.name}-${file.lastModified}`}
-                    />
+                    <div className="media-preview-item" key={`${file.name}-${file.lastModified}`}>
+                      <img src={URL.createObjectURL(file)} alt={`Новая фотография ${index + 1}`} />
+                      <button
+                        type="button"
+                        className="media-preview-remove"
+                        aria-label={`Убрать фотографию ${index + 1}`}
+                        onClick={() =>
+                          setGalleryFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))
+                        }
+                      >
+                        ×
+                      </button>
+                    </div>
                   ))}
                 </div>
                 <label className="button secondary">
