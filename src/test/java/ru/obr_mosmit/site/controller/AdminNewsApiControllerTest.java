@@ -170,6 +170,85 @@ class AdminNewsApiControllerTest {
     }
 
     @Test
+    void galleryPhotoCanBeDeleted() throws Exception {
+        String body = mockMvc.perform(multipart("/api/admin/news")
+                        .param("title", "Новость для удаления фото")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p>")
+                        .param("slug", "")
+                        .param("status", "PUBLISHED")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String id = body.replaceAll("(?s).*\"id\"\\s*:\\s*(\\d+).*", "$1");
+        var photo = new MockMultipartFile(
+                "files",
+                "gallery.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00});
+
+        String galleryBody = mockMvc.perform(multipart("/api/admin/media/news/" + id)
+                        .file(photo)
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String url = galleryBody.replaceAll("(?s).*\"(/uploads/[^\"]+)\".*", "$1");
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .delete("/api/admin/media/news/" + id)
+                        .param("url", url)
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/news/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gallery").isEmpty());
+    }
+
+    @Test
+    void coverImageCanBeDeleted() throws Exception {
+        var image = new MockMultipartFile(
+                "image",
+                "cover.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00});
+
+        String body = mockMvc.perform(multipart("/api/admin/news")
+                        .file(image)
+                        .param("title", "Новость для удаления обложки")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p>")
+                        .param("slug", "")
+                        .param("status", "PUBLISHED")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.image").value(org.hamcrest.Matchers.startsWith("/uploads/")))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String id = body.replaceAll("(?s).*\"id\"\\s*:\\s*(\\d+).*", "$1");
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .delete("/api/admin/media/news/" + id + "/cover")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/news/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.image").value(org.hamcrest.Matchers.anyOf(
+                        org.hamcrest.Matchers.nullValue(),
+                        org.hamcrest.Matchers.equalTo(""))));
+    }
+
+    @Test
     void createWithOversizedCoverReturnsReadableError() throws Exception {
         byte[] tooLarge = new byte[10 * 1024 * 1024 + 1];
         tooLarge[0] = (byte) 0xFF;

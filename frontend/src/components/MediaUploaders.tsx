@@ -64,12 +64,53 @@ export function MediaGalleryUploader({ endpoint, images = [], onChange }: Galler
     }
   }
 
+  const remove = async (src: string) => {
+    if (!confirm('Удалить эту фотографию?')) return
+    setBusy(true)
+    setError('')
+    try {
+      const response = await fetch(`${endpoint}?url=${encodeURIComponent(src)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        signal: timeoutSignal(UPLOAD_TIMEOUT_MS),
+      })
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('Необходимо войти как администратор')
+      }
+      if (!response.ok) {
+        throw new Error((await response.text()).trim() || 'Не удалось удалить фотографию')
+      }
+      const latest = (await response.json()) as string[]
+      setItems(latest)
+      onChange?.(latest)
+    } catch (err) {
+      if (isAbortOrTimeoutError(err)) {
+        setError(SAVE_TIMEOUT_MESSAGE)
+      } else {
+        setError(err instanceof Error ? err.message : 'Не удалось удалить фотографию')
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="media-uploader">
       {error && <p className="form-error">{error}</p>}
       <div className="media-preview-grid">
         {items.map((src, i) => (
-          <img src={src} alt={`Фотография ${i + 1}`} key={src} />
+          <div className="media-preview-item" key={`${src}-${i}`}>
+            <img src={src} alt={`Фотография ${i + 1}`} />
+            <button
+              type="button"
+              className="media-preview-remove"
+              aria-label={`Удалить фотографию ${i + 1}`}
+              disabled={busy}
+              onClick={() => void remove(src)}
+            >
+              ×
+            </button>
+          </div>
         ))}
       </div>
       <label className="button secondary">

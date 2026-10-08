@@ -91,3 +91,12 @@ export async function uploadNewsGallery(newsId: number, files: File[]): Promise<
 export async function deleteAdminNews(id: number) {
     await check(await fetchAdmin(`/api/admin/news/${id}`, { method: 'DELETE', credentials: 'include' }));
 }
+
+export async function deleteNewsCover(id: string) {
+    await check(
+        await fetchAdmin(`/api/admin/media/news/${id}/cover`, {
+            method: 'DELETE',
+            credentials: 'include',
+        }),
+    );
+}
