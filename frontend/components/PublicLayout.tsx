@@ -125,7 +125,7 @@ export function PublicLayout() {
           <a href="http://www.patriarchia.ru/" target="_blank" rel="noreferrer">Русская Православная Церковь</a>
           <a href="https://mosmit.ru/" target="_blank" rel="noreferrer">Московская митрополия</a>
           <a href="http://pravobraz.ru/" target="_blank" rel="noreferrer">Православное образование</a>
-          <a href="https://rpusib.ru/" target="_blank" rel="noreferrer">Проект образования</a>
+          <a href="https://rpusib.ru/" target="_blank" rel="noreferrer">Проект «Образование»</a>
         </div>
         <a className="footer-center-link" href="https://mo-kuro.ru/departments/dukhovno-prosvetitelskii-kulturnyi-tsentr-im-prosvetitelei-slavianskikh-kirilla-i-mefodiia" target="_blank" rel="noreferrer">Центр Кирилла и Мефодия</a>
       </nav>
