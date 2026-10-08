@@ -14,9 +14,10 @@ type GalleryProps = {
   endpoint: string
   images?: string[]
   onChange?: (images: string[]) => void
+  onRemove?: (src: string) => Promise<string[]>
 }
 
-export function MediaGalleryUploader({ endpoint, images = [], onChange }: GalleryProps) {
+export function MediaGalleryUploader({ endpoint, images = [], onChange, onRemove }: GalleryProps) {
   const [items, setItems] = useState(images)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -69,18 +70,23 @@ export function MediaGalleryUploader({ endpoint, images = [], onChange }: Galler
     setBusy(true)
     setError('')
     try {
-      const response = await fetch(`${endpoint}?url=${encodeURIComponent(src)}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        signal: timeoutSignal(UPLOAD_TIMEOUT_MS),
-      })
-      if (response.status === 401 || response.status === 403) {
-        throw new Error('Необходимо войти как администратор')
+      let latest: string[]
+      if (onRemove) {
+        latest = await onRemove(src)
+      } else {
+        const response = await fetch(`${endpoint}?url=${encodeURIComponent(src)}`, {
+          method: 'DELETE',
+          credentials: 'include',
+          signal: timeoutSignal(UPLOAD_TIMEOUT_MS),
+        })
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Необходимо войти как администратор')
+        }
+        if (!response.ok) {
+          throw new Error((await response.text()).trim() || 'Не удалось удалить фотографию')
+        }
+        latest = (await response.json()) as string[]
       }
-      if (!response.ok) {
-        throw new Error((await response.text()).trim() || 'Не удалось удалить фотографию')
-      }
-      const latest = (await response.json()) as string[]
       setItems(latest)
       onChange?.(latest)
     } catch (err) {

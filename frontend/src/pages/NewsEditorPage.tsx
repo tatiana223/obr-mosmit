@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { deleteNewsCover, loadAdminNewsItem, saveAdminNews, uploadNewsGallery } from '../api/adminNewsApi'
+import { deleteNewsCover, deleteNewsPhoto, loadAdminNewsItem, saveAdminNews, uploadNewsGallery } from '../api/adminNewsApi'
+import { listNewsGalleryPhotos } from '../utils/newsPhotos'
 import { htmlToPlainText } from '../utils/plainText'
 import { prepareCoverImage, prepareGalleryImages } from '../utils/imageUpload'
 import { RichTextEditor } from '../components/RichTextEditor'
@@ -55,6 +56,7 @@ export function NewsEditorPage() {
   const [notice, setNotice] = useState('')
   const [phase, setPhase] = useState<SavePhase>('idle')
   const saving = phase !== 'idle'
+  const galleryImages = listNewsGalleryPhotos(gallery, content, image)
 
   useEffect(() => {
     if (!id) return
@@ -135,6 +137,9 @@ export function NewsEditorPage() {
 
       setStatus(saved.status)
       setPublishedAt(toDatetimeLocalValue(saved.publishedAt))
+      setImage(saved.image)
+      if (!preparedGallery.length) setGallery(saved.gallery || [])
+      setContent(saved.content || '')
       await queryClient.invalidateQueries({ queryKey: ['public-news'] })
       setNotice(
         saved.status === 'PUBLISHED'
@@ -275,8 +280,15 @@ export function NewsEditorPage() {
             {id ? (
               <MediaGalleryUploader
                 endpoint={`/api/admin/media/news/${id}`}
-                images={gallery}
+                images={galleryImages}
                 onChange={setGallery}
+                onRemove={async (src) => {
+                  const item = await deleteNewsPhoto(id, src)
+                  setContent(item.content || '')
+                  setImage(item.image)
+                  setGallery(item.gallery || [])
+                  return listNewsGalleryPhotos(item.gallery || [], item.content || '', item.image)
+                }}
               />
             ) : (
               <div className="media-uploader">

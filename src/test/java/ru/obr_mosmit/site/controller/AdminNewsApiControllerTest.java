@@ -213,6 +213,33 @@ class AdminNewsApiControllerTest {
     }
 
     @Test
+    void photosFromNewsContentAppearInAdminGalleryAndCanBeDeleted() throws Exception {
+        String body = mockMvc.perform(multipart("/api/admin/news")
+                        .param("title", "Новость со старыми фото")
+                        .param("summary", "Кратко")
+                        .param("content", "<p>Текст</p><p><img src=\"/uploads/imported-news/old.jpg\" alt=\"\"></p>")
+                        .param("slug", "")
+                        .param("status", "PUBLISHED")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gallery[0]").value("/uploads/imported-news/old.jpg"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String id = body.replaceAll("(?s).*\"id\"\\s*:\\s*(\\d+).*", "$1");
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .delete("/api/admin/news/" + id + "/photos")
+                        .param("url", "/uploads/imported-news/old.jpg")
+                        .with(user("admin@example.ru").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gallery").isEmpty())
+                .andExpect(jsonPath("$.content").value(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("imported-news/old.jpg"))));
+    }
+
+    @Test
     void coverImageCanBeDeleted() throws Exception {
         var image = new MockMultipartFile(
                 "image",

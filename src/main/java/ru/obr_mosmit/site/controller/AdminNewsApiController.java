@@ -74,14 +74,17 @@ public class AdminNewsApiController {
         service.delete(id);
     }
 
+    @DeleteMapping("/{id}/photos")
+    AdminNewsDto removePhoto(@PathVariable Long id, @RequestParam String url) {
+        return dto(service.removePhoto(id, url));
+    }
+
     private AdminNewsDto dto(News news) {
         String date = news.getPublishedAt() == null
                 ? "—"
                 : DATE.format(news.getPublishedAt().atZone(ZoneId.of("Europe/Moscow")));
         String publishedAt = news.getPublishedAt() == null ? "" : news.getPublishedAt().toString();
-        List<String> gallery = news.getGalleryUrls() == null || news.getGalleryUrls().isBlank()
-                ? List.of()
-                : List.of(news.getGalleryUrls().split("\\n"));
+        List<String> gallery = service.listExtraPhotos(news);
 
         return new AdminNewsDto(
                 news.getId(),
