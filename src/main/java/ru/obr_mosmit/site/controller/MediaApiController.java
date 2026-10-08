@@ -19,12 +19,14 @@ import ru.obr_mosmit.site.repository.CourseRepository;
 import ru.obr_mosmit.site.repository.NewsRepository;
 import ru.obr_mosmit.site.repository.SchoolRepository;
 import ru.obr_mosmit.site.service.MediaStorageService;
+import ru.obr_mosmit.site.service.NewsService;
 
 @RestController
 @RequestMapping("/api/admin/media")
 public class MediaApiController {
 
     private final MediaStorageService storage;
+    private final NewsService newsService;
     private final NewsRepository news;
     private final SchoolRepository schools;
     private final CompetitionRepository competitions;
@@ -32,11 +34,13 @@ public class MediaApiController {
 
     public MediaApiController(
             MediaStorageService storage,
+            NewsService newsService,
             NewsRepository news,
             SchoolRepository schools,
             CompetitionRepository competitions,
             CourseRepository courses) {
         this.storage = storage;
+        this.newsService = newsService;
         this.news = news;
         this.schools = schools;
         this.competitions = competitions;
@@ -54,11 +58,7 @@ public class MediaApiController {
 
     @DeleteMapping("/news/{id}")
     List<String> removeNewsGallery(@PathVariable Long id, @RequestParam String url) {
-        var item = news.findById(id).orElseThrow();
-        var urls = removeImage(item.getGalleryUrls(), url);
-        item.setGalleryUrls(join(urls));
-        news.save(item);
-        return urls;
+        return newsService.listExtraPhotos(newsService.removePhoto(id, url));
     }
 
     @DeleteMapping("/news/{id}/cover")

@@ -13,8 +13,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,10 +33,15 @@ public class NewsService {
     private static final ZoneId MOSCOW = ZoneId.of("Europe/Moscow");
 
     private final NewsRepository repository;
+    private final MediaStorageService storage;
     private final Path uploadDirectory;
 
-    public NewsService(NewsRepository repository, @Value("${app.uploads.directory}") String uploadDirectory) {
+    public NewsService(
+            NewsRepository repository,
+            MediaStorageService storage,
+            @Value("${app.uploads.directory}") String uploadDirectory) {
         this.repository = repository;
+        this.storage = storage;
         this.uploadDirectory = Path.of(uploadDirectory).toAbsolutePath().normalize();
     }
     public News get(Long id) { return repository.findById(id).orElseThrow(() -> new ResponseStatusException(NOT_FOUND)); }
@@ -79,6 +90,89 @@ public class NewsService {
     }
 
     public void delete(Long id) { repository.delete(get(id)); }
+
+    public News removePhoto(Long id, String url) {
+        News news = get(id);
+        String target = MediaStorageService.normalizePhotoUrl(url);
+        if (target.isBlank()) {
+            throw new ResponseStatusException(BAD_REQUEST, "Не указана фотография");
+        }
+        boolean changed = false;
+
+        ArrayList<String> gallery = parseGallery(news.getGalleryUrls());
+        changed |= gallery.removeIf(item -> samePhoto(item, target));
+        news.setGalleryUrls(gallery.isEmpty() ? "" : String.join("\n", gallery));
+
+        if (samePhoto(news.getCoverImageUrl(), target)) {
+            news.setCoverImageUrl(null);
+            changed = true;
+        }
+
+        String content = news.getContent();
+        if (content != null && !content.isBlank()) {
+            Document document = Jsoup.parseBodyFragment(content);
+            boolean stripped = false;
+            for (Element image : document.select("img")) {
+                if (samePhoto(image.attr("src"), target)) {
+                    Element parent = image.parent();
+                    image.remove();
+                    stripped = true;
+                    if (parent != null && parent.children().isEmpty() && parent.text().isBlank()) {
+                        parent.remove();
+                    }
+                }
+            }
+            if (stripped) {
+                news.setContent(document.body().html());
+                changed = true;
+            }
+        }
+
+        if (!changed) {
+            throw new ResponseStatusException(NOT_FOUND, "Фотография не найдена");
+        }
+        storage.deleteStored(target);
+        return repository.save(news);
+    }
+
+    public List<String> listExtraPhotos(News news) {
+        ArrayList<String> urls = new ArrayList<>();
+        for (String item : parseGallery(news.getGalleryUrls())) {
+            if (!item.isBlank() && !containsPhoto(urls, item)) {
+                urls.add(item.trim());
+            }
+        }
+        String content = news.getContent();
+        if (content != null && !content.isBlank()) {
+            Document document = Jsoup.parseBodyFragment(content);
+            for (Element image : document.select("img[src]")) {
+                String src = image.attr("src").trim();
+                if (!src.isEmpty() && !containsPhoto(urls, src)) {
+                    urls.add(src);
+                }
+            }
+        }
+        if (news.getCoverImageUrl() != null && !news.getCoverImageUrl().isBlank()
+                && !containsPhoto(urls, news.getCoverImageUrl())) {
+            urls.add(news.getCoverImageUrl().trim());
+        }
+        return urls;
+    }
+
+    private static ArrayList<String> parseGallery(String value) {
+        if (value == null || value.isBlank()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(Arrays.asList(value.split("\\R")));
+    }
+
+    private static boolean samePhoto(String left, String right) {
+        return MediaStorageService.normalizePhotoUrl(left).equals(MediaStorageService.normalizePhotoUrl(right));
+    }
+
+    private static boolean containsPhoto(List<String> urls, String candidate) {
+        return urls.stream().anyMatch(item -> samePhoto(item, candidate));
+    }
 
     private String storeImage(MultipartFile image) {
         var type = image.getContentType();

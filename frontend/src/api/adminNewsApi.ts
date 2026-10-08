@@ -100,3 +100,14 @@ export async function deleteNewsCover(id: string) {
         }),
     );
 }
+
+export async function deleteNewsPhoto(id: string, url: string): Promise<AdminNewsItem> {
+    return (
+        await check(
+            await fetchAdmin(`/api/admin/news/${id}/photos?url=${encodeURIComponent(url)}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            }),
+        )
+    ).json();
+}

@@ -58,14 +58,11 @@ public class MediaStorageService {
     }
 
     public void deleteStored(String url) {
-        if (url == null || !url.startsWith("/uploads/")) {
+        String relative = uploadsRelativePath(url);
+        if (relative == null) {
             return;
         }
-        String name = url.substring("/uploads/".length());
-        if (name.isBlank() || name.contains("/") || name.contains("\\") || name.contains("..")) {
-            return;
-        }
-        Path target = directory.resolve(name).normalize();
+        Path target = directory.resolve(relative).normalize();
         if (!target.startsWith(directory)) {
             return;
         }
@@ -74,6 +71,41 @@ public class MediaStorageService {
         } catch (IOException ignored) {
             // Gallery/cover rows still drop even if the file is already gone.
         }
+    }
+
+    static String uploadsRelativePath(String url) {
+        String path = normalizePhotoUrl(url);
+        if (!path.startsWith("/uploads/")) {
+            return null;
+        }
+        String relative = path.substring("/uploads/".length());
+        if (relative.isBlank() || relative.contains("\\") || relative.contains("..")) {
+            return null;
+        }
+        return relative;
+    }
+
+    static String normalizePhotoUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return "";
+        }
+        String value = url.trim();
+        int query = value.indexOf('?');
+        if (query >= 0) {
+            value = value.substring(0, query);
+        }
+        try {
+            value = java.net.URLDecoder.decode(value, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException ignored) {
+            // keep the raw path if it was not encoded
+        }
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            int pathStart = value.indexOf('/', value.indexOf("//") + 2);
+            if (pathStart >= 0) {
+                value = value.substring(pathStart);
+            }
+        }
+        return value;
     }
 
     private boolean isImage(MultipartFile file) {
