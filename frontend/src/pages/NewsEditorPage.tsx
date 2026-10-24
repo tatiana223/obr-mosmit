@@ -196,14 +196,14 @@ export function NewsEditorPage() {
               placeholder="Коротко расскажите, о чём публикация"
             />
           </label>
-          <label>
+          <div className="editor-field">
             <span>Текст новости</span>
             <RichTextEditor
               value={content}
               onChange={setContent}
               placeholder="Введите полный текст новости…"
             />
-          </label>
+          </div>
         </section>
         <aside className="editor-settings">
           <section className="surface setting-card">

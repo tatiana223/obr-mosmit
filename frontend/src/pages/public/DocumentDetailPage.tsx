@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { loadDocument } from '../../api/documentsApi';
+import { neutralizeInlineHighlight } from '../../utils/plainText';
 export function DocumentDetailPage() {
     const { id = '' } = useParams();
     const { data: item, isLoading, isError } = useQuery({ queryKey: ['document', id], queryFn: () => loadDocument(id), retry: false });
@@ -11,6 +12,6 @@ export function DocumentDetailPage() {
     return <main className="article-page document-page">
     <Link className="article-back" to={`/dokumenty/razdel/${encodeURIComponent(item.category)}`}>← Назад в раздел</Link>
     <span className="eyebrow">{item.category}</span><h1>{item.title}</h1>
-    <div className="article-text document-content" dangerouslySetInnerHTML={{ __html: item.content }}/>
+    <div className="article-text document-content" dangerouslySetInnerHTML={{ __html: neutralizeInlineHighlight(item.content ?? '') }}/>
   </main>;
 }

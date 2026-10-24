@@ -104,10 +104,10 @@ export function DocumentEditorPage() {
           <span>Краткое описание <small>{summary.length} / 1000</small></span>
           <textarea rows={4} maxLength={1000} value={summary} onChange={event => setSummary(event.target.value)} placeholder="Кратко опишите документ" />
         </label>
-        <label className="document-content-field">
+        <div className="editor-field document-content-field">
           <span>Текст документа</span>
           <RichTextEditor value={content} onChange={setContent} placeholder="Введите текст документа…" />
-        </label>
+        </div>
       </section>
 
       <aside className="editor-settings document-editor-page-settings">

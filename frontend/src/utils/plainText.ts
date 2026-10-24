@@ -1,3 +1,33 @@
+export function neutralizeInlineHighlight(html: string) {
+    if (!html) return '';
+    const document = new DOMParser().parseFromString(html, 'text/html');
+    document.body.querySelectorAll('[style]').forEach(element => {
+        if (!(element instanceof HTMLElement)) return;
+        const color = element.style.color.trim().toLowerCase().replace(/\s+/g, '');
+        if (
+            color === '#000' ||
+            color === '#000000' ||
+            color === 'black' ||
+            color === 'rgb(0,0,0)' ||
+            color === 'rgba(0,0,0,1)' ||
+            color === '#17231c' ||
+            color === '#111111' ||
+            color === '#1a1a1a'
+        ) {
+            element.style.removeProperty('color');
+        }
+        if (!element.getAttribute('style')?.trim()) element.removeAttribute('style');
+    });
+    document.body.querySelectorAll('[color]').forEach(element => element.removeAttribute('color'));
+    document.body.querySelectorAll('b,strong,font').forEach(element => {
+        const parent = element.parentNode;
+        if (!parent) return;
+        while (element.firstChild) parent.insertBefore(element.firstChild, element);
+        element.remove();
+    });
+    return document.body.innerHTML;
+}
+
 export function htmlToPlainText(value: string) {
     if (!value)
         return '';

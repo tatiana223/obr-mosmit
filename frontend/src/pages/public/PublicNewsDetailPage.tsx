@@ -40,6 +40,14 @@ function prepareContent(html: string, cover?: string) {
         element.removeAttribute('class');
         element.removeAttribute('width');
         element.removeAttribute('height');
+        element.removeAttribute('color');
+        element.removeAttribute('face');
+    });
+    document.body.querySelectorAll('b,strong,font').forEach(element => {
+        const parent = element.parentNode;
+        if (!parent) return;
+        while (element.firstChild) parent.insertBefore(element.firstChild, element);
+        element.remove();
     });
     return { html: document.body.innerHTML, images };
 }
