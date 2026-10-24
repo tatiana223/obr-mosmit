@@ -68,6 +68,24 @@ export function RichTextEditor({ value, onChange, placeholder = 'Введите 
     clone.querySelectorAll('span').forEach(span => {
       if (!span.textContent && span.children.length === 0) span.remove()
     })
+    clone.querySelectorAll('[style]').forEach(element => {
+      if (!(element instanceof HTMLElement)) return
+      const color = element.style.color.trim().toLowerCase()
+      if (!color) return
+      const normalized = color.replace(/\s+/g, '')
+      if (
+        normalized === '#000' ||
+        normalized === '#000000' ||
+        normalized === 'black' ||
+        normalized === 'rgb(0,0,0)' ||
+        normalized === 'rgba(0,0,0,1)' ||
+        normalized === '#17231c' ||
+        normalized === '#111111' ||
+        normalized === '#1a1a1a'
+      ) {
+        element.style.removeProperty('color')
+      }
+    })
     return clone.innerHTML
   }
 
