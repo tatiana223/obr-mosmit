@@ -185,6 +185,13 @@
             <a class="btn btn-primary" href="/api/export.csv?group=nomination" id="downloadByNominationBtn">
               Скачать по номинациям
             </a>
+            <a
+              class="btn btn-primary"
+              href="/api/export.csv?group=nomination&winners=1"
+              id="downloadWinnersByNominationBtn"
+            >
+              Скачать победителей по номинациям
+            </a>
           </div>
         </div>
         <div class="table-view-tabs" role="tablist" aria-label="Вид таблицы">
@@ -253,6 +260,6 @@
     </div>
 
     <script src="/js/site-header.js?v=20260817-admin-embed"></script>
-    <script type="module" src="/js/organizer.js?v=20260821-persist-tab"></script>
+    <script type="module" src="/js/organizer.js?v=20261025-winners-export"></script>
   </body>
 </html>

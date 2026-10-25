@@ -2070,9 +2070,38 @@ app.get('/api/export.csv', (req, res) => {
   const submissions = meta.submissions || {};
   const deaneryFilter = String(req.query.deanery ?? '').trim();
   const dioceseFilter = String(req.query.diocese ?? '').trim();
-  const group = String(req.query.group ?? 'deanery').trim() === 'nomination'
-    ? 'nomination'
-    : 'deanery';
+  const rawGroup = String(req.query.group ?? 'deanery').trim();
+  const winnersOnly =
+    rawGroup === 'winners' ||
+    ['1', 'true', 'yes'].includes(String(req.query.winners ?? '').trim().toLowerCase());
+  const group =
+    winnersOnly || rawGroup === 'nomination'
+      ? 'nomination'
+      : 'deanery';
+
+  const winnerPlaceRank = (place) => {
+    const raw = String(place || '').trim();
+    if (!raw) return 99;
+    if (/спецприз/i.test(raw)) return 4;
+    const normalized = raw
+      .replace(/^занявш[аяуи]+й?\s+/i, '')
+      .replace(/\s*место$/i, '')
+      .trim()
+      .toUpperCase();
+    if (normalized === 'I' || normalized === '1') return 1;
+    if (normalized === 'II' || normalized === '2') return 2;
+    if (normalized === 'III' || normalized === '3') return 3;
+    return 5;
+  };
+
+  const formatPlaceLabel = (place) => {
+    const value = String(place || '').trim();
+    if (!value) return '';
+    if (value === 'I') return 'I место';
+    if (value === 'II') return 'II место';
+    if (value === 'III') return 'III место';
+    return value;
+  };
 
   // Без благочиния — полная выгрузка (админка). С благочинием — строго одно благочиние.
   let list = readJson(DATA_FILE, []);
@@ -2087,11 +2116,16 @@ app.get('/api/export.csv', (req, res) => {
     list = list.filter((item) => String(item.diocese || '').trim() === dioceseFilter);
   }
 
+  if (winnersOnly) {
+    list = list.filter((item) => Boolean(String(item?.place || '').trim()));
+  }
+
   const compareRu = (a, b) => String(a || '').localeCompare(String(b || ''), 'ru', { sensitivity: 'base' });
   list = [...list].sort((a, b) => {
     if (group === 'nomination') {
       return (
         compareRu(a.nomination, b.nomination) ||
+        (winnersOnly ? winnerPlaceRank(a.place) - winnerPlaceRank(b.place) : 0) ||
         compareRu(a.deanery, b.deanery) ||
         compareRu(a.lastName, b.lastName) ||
         compareRu(a.firstName, b.firstName)
@@ -2099,6 +2133,7 @@ app.get('/api/export.csv', (req, res) => {
     }
     return (
       compareRu(a.deanery, b.deanery) ||
+      (winnersOnly ? winnerPlaceRank(a.place) - winnerPlaceRank(b.place) : 0) ||
       compareRu(a.nomination, b.nomination) ||
       compareRu(a.lastName, b.lastName) ||
       compareRu(a.firstName, b.firstName)
@@ -2107,6 +2142,7 @@ app.get('/api/export.csv', (req, res) => {
 
   const headers = [
     '№',
+    'Место',
     'Епархия',
     'Благочиние',
     'Фамилия',
@@ -2145,6 +2181,7 @@ app.get('/api/export.csv', (req, res) => {
       repPhone && repName ? `${repPhone} (${repName})` : repPhone || (repName ? `(${repName})` : '');
     return [
       i + 1,
+      formatPlaceLabel(p.place),
       p.diocese || '',
       p.deanery || '',
       p.lastName,
@@ -2168,7 +2205,13 @@ app.get('/api/export.csv', (req, res) => {
 
   const escape = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
   const csv = '\uFEFF' + [headers, ...rows].map((row) => row.map(escape).join(';')).join('\n');
-  const baseName = deaneryFilter || (group === 'nomination' ? 'po-nominaciyam' : 'po-blagochiniyam');
+  const baseName =
+    deaneryFilter ||
+    (winnersOnly
+      ? 'pobediteli-po-nominaciyam'
+      : group === 'nomination'
+        ? 'po-nominaciyam'
+        : 'po-blagochiniyam');
   const safeName = String(baseName)
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
     .replace(/\s+/g, '-')

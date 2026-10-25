@@ -311,7 +311,26 @@ function groupByNomination(list) {
   return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'ru'));
 }
 
+function winnerPlaceRank(place) {
+  const raw = String(place || '').trim();
+  if (!raw) return 99;
+  if (/спецприз/i.test(raw)) return 4;
+  const normalized = raw
+    .replace(/^занявш[аяуи]+й?\s+/i, '')
+    .replace(/\s*место$/i, '')
+    .trim()
+    .toUpperCase();
+  if (normalized === 'I' || normalized === '1') return 1;
+  if (normalized === 'II' || normalized === '2') return 2;
+  if (normalized === 'III' || normalized === '3') return 3;
+  return 5;
+}
+
 function compareParticipants(a, b, secondaryKey = '') {
+  if (winnersOnlyFilter) {
+    const byPlace = winnerPlaceRank(a.place) - winnerPlaceRank(b.place);
+    if (byPlace) return byPlace;
+  }
   if (secondaryKey) {
     const bySecondary = String(a[secondaryKey] || '').localeCompare(
       String(b[secondaryKey] || ''),
